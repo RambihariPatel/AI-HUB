@@ -24,10 +24,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid — clear auth and redirect to login
+      // Token expired or invalid — clear local auth and let Clerk handle the session
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

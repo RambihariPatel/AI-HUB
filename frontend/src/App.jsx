@@ -7,15 +7,12 @@ import ToolsDirectory from './pages/ToolsDirectory';
 import ToolDetails from './pages/ToolDetails';
 import Categories from './pages/Categories';
 import Compare from './pages/Compare';
-import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import { RedirectToSignIn, SignedOut, SignedIn } from '@clerk/clerk-react';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   if (loading) {
     return (
@@ -25,12 +22,14 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!user) {
-    // Redirect to login but save the location they were trying to access
-    return <Navigate to="/login" state={{ from: location, message: "Please sign in to access this feature" }} replace />;
-  }
-
-  return children;
+  return (
+    <>
+      <SignedIn>{children}</SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
+  );
 };
 
 function App() {
@@ -49,9 +48,9 @@ function App() {
             <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            {/* Redirect any legacy auth routes back to home */}
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/register" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <Footer />

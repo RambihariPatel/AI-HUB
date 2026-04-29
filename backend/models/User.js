@@ -12,7 +12,17 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: false
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    clerkId: {
+        type: String,
+        unique: true,
+        sparse: true
     },
     favourites: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -21,7 +31,9 @@ const userSchema = new mongoose.Schema({
     history: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tool'
-    }]
+    }],
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

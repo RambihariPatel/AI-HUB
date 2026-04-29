@@ -11,6 +11,10 @@ connectDB();
 
 const app = express();
 
+// Body Parser Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
 // CORS - Allow specific origins for production safety
 const corsOptions = {
     origin: process.env.FRONTEND_URL || '*',

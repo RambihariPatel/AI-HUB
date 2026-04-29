@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
-import { Star, ExternalLink, Check, ArrowLeft, Zap, MessageSquare, Info, TrendingUp, Heart } from 'lucide-react';
+import { Star, ExternalLink, Check, ArrowRight, Zap, Info, TrendingUp, Heart } from 'lucide-react';
 
 const ToolDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
+
   const [tool, setTool] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedTools, setRelatedTools] = useState([]);
@@ -21,6 +25,16 @@ const ToolDetails = () => {
         const { data: catData } = await api.get(`/api/tools?category=${data.category}`);
         setRelatedTools(catData.tools.filter(t => t._id !== id).slice(0, 4));
         
+        // Check if is favourite
+        if (user && user.favourites) {
+          setIsFavourite(user.favourites.includes(id));
+        }
+
+        // Add to history if logged in
+        if (user) {
+          api.post('/api/users/history', { toolId: id }).catch(err => console.error("History error:", err));
+        }
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching tool details', error);
@@ -28,17 +42,17 @@ const ToolDetails = () => {
       }
     };
     fetchToolDetails();
-  }, [id]);
+  }, [id, user]);
 
   const toggleFavourite = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!user) {
       alert('Please login to save favorites!');
       return;
     }
     try {
-      await api.post('/api/users/favourites', { toolId: id });
+      const { data } = await api.post('/api/users/favourites', { toolId: id });
       setIsFavourite(!isFavourite);
+      updateUser({ favourites: data.favourites });
     } catch (error) {
       console.error('Error toggling favourite', error);
     }
@@ -62,59 +76,98 @@ const ToolDetails = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-in fade-in duration-500">
-      <Link to="/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-blue-500 mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4 mr-2" /> Back to Discover
-      </Link>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 animate-in fade-in duration-700">
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate(-1)}
+        className="mb-8 flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-blue-500 transition-colors group"
+      >
+        <ArrowRight className="w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" /> Back to Directory
+      </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Left Column: Tool Info */}
-        <div className="lg:col-span-2 space-y-12">
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="h-32 w-32 rounded-2xl bg-white flex items-center justify-center border border-blue-500/20 shadow-inner overflow-hidden p-4">
-              <img 
-                src={`https://www.google.com/s2/favicons?domain=${new URL(tool.link).hostname}&sz=256`} 
-                alt={tool.name} 
-                className="h-full w-full object-contain"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = `https://ui-avatars.com/api/?name=${tool.name}&background=0D8ABC&color=fff&size=256`;
-                }}
-              />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20">
+      {/* Hero Section */}
+      <div className="bg-card border border-border rounded-[2.5rem] p-6 lg:p-12 mb-12 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 blur-[100px] -z-10 rounded-full"></div>
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start text-center lg:text-left">
+          <div className="h-24 w-24 lg:h-32 lg:w-32 rounded-3xl bg-white border border-border flex items-center justify-center p-4 shadow-xl shrink-0">
+            <img 
+              src={`https://www.google.com/s2/favicons?domain=${new URL(tool.link).hostname}&sz=128`} 
+              alt={tool.name} 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex-1 min-w-0 w-full">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-4 justify-center lg:justify-start">
+              <h1 className="text-4xl lg:text-6xl font-black tracking-tight">{tool.name}</h1>
+              <div className="flex items-center gap-2 justify-center">
+                <span className="px-4 py-1.5 bg-blue-600 text-white text-[10px] lg:text-xs font-black uppercase tracking-widest rounded-full shadow-lg shadow-blue-500/20">
                   {tool.category}
                 </span>
-                <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${
-                  tool.pricing === 'Free' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 
-                  tool.pricing === 'Paid' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 
-                  'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                <span className={`px-4 py-1.5 text-[10px] lg:text-xs font-black uppercase tracking-widest rounded-full border ${
+                  tool.pricing === 'Free' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                 }`}>
                   {tool.pricing}
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-extrabold mb-4">{tool.name}</h1>
-              <p className="text-xl text-muted-foreground mb-6 font-medium">{tool.tagline}</p>
-              
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-1.5 text-amber-500">
-                  <Star className="w-6 h-6 fill-current" />
-                  <span className="text-2xl font-bold text-foreground">{tool.rating}</span>
-                  <span className="text-sm text-muted-foreground ml-1">({tool.numReviews || 0} reviews)</span>
-                </div>
-                <div className="h-6 w-px bg-border hidden sm:block"></div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <TrendingUp className="w-5 h-5 text-blue-500" />
-                  <span className="text-sm font-medium">{tool.popularityLevel} Popularity</span>
-                </div>
-              </div>
+            </div>
+            <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-3xl font-medium leading-relaxed">
+              {tool.tagline}
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+              <a 
+                href={tool.link} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-full sm:w-auto px-10 py-4 bg-blue-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/25 active:scale-95"
+              >
+                Visit Website <ExternalLink className="w-5 h-5" />
+              </a>
+              <button 
+                onClick={toggleFavourite}
+                className={`w-full sm:w-auto px-10 py-4 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 border ${
+                  isFavourite 
+                    ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white' 
+                    : 'bg-secondary text-foreground border-transparent hover:border-border'
+                }`}
+              >
+                <Heart className={`w-5 h-5 ${isFavourite ? 'fill-current' : ''}`} />
+                {isFavourite ? 'Saved' : 'Save to Favorites'}
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Description Section */}
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-8 mt-12 pt-12 border-t border-border/50">
+          <div className="text-center lg:text-left">
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-amber-500 mb-1">
+              <Star className="w-5 h-5 fill-current" />
+              <span className="text-xl font-black text-foreground">{tool.rating}</span>
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Rating</p>
+          </div>
+          <div className="text-center lg:text-left border-l border-border/50 pl-2 lg:pl-8">
+             <div className="text-xl font-black mb-1">{tool.numReviews || 0}</div>
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Reviews</p>
+          </div>
+          <div className="text-center lg:text-left border-l border-border/50 pl-2 lg:pl-8">
+             <div className="text-xl font-black mb-1 flex items-center justify-center lg:justify-start gap-1">
+               <Zap className="w-5 h-5 text-amber-500 fill-amber-500" />
+               {tool.modelInfo?.credits || 'Varies'}
+             </div>
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Access</p>
+          </div>
+          <div className="text-center lg:text-left border-l border-border/50 pl-2 lg:pl-8">
+             <div className="text-xl font-black mb-1">Top Tier</div>
+             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Performance</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {/* Left Column: Tool Details */}
+        <div className="lg:col-span-2 space-y-12">
+          {/* About Section */}
           <div className="space-y-6">
             <h2 className="text-2xl font-bold border-b border-border pb-4 flex items-center gap-2">
               <Info className="w-6 h-6 text-blue-500" /> About {tool.name}
@@ -145,150 +198,56 @@ const ToolDetails = () => {
             </div>
           )}
 
-          {/* Reviews Section */}
-          <div className="pt-12 mt-12 border-t border-border">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <MessageSquare className="w-6 h-6 text-blue-500" /> User Reviews
-              </h2>
-              <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-600 rounded-lg font-bold">
-                <Star className="w-4 h-4 fill-current" />
-                {tool.rating}
-              </div>
+          {/* Pros & Cons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-green-500/5 rounded-3xl p-8 border border-green-500/10">
+              <h3 className="text-lg font-bold text-green-600 mb-6 flex items-center gap-2">
+                <div className="h-2 w-8 bg-green-500 rounded-full"></div> Pros
+              </h3>
+              <ul className="space-y-4">
+                {tool.pros?.map((pro, i) => (
+                  <li key={i} className="flex gap-3 text-sm font-medium text-muted-foreground">
+                    <Check className="w-4 h-4 text-green-500 shrink-0" /> {pro}
+                  </li>
+                ))}
+              </ul>
             </div>
-
-            <div className="space-y-6">
-              {/* Review Form */}
-              <div className="bg-secondary/30 p-8 rounded-3xl border border-border">
-                <h3 className="text-lg font-bold mb-4">Share your experience</h3>
-                <div className="space-y-4">
-                  <div className="flex gap-2 mb-4">
-                    {[1, 2, 3, 4, 5].map(s => (
-                      <Star key={s} className="w-6 h-6 text-muted-foreground cursor-pointer hover:text-amber-500 transition-colors" />
-                    ))}
-                  </div>
-                  <textarea 
-                    placeholder="What do you think about this tool? (Features, speed, accuracy...)" 
-                    className="w-full h-32 p-4 bg-background border border-border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                  ></textarea>
-                  <button className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20">
-                    Post Review
-                  </button>
-                </div>
-              </div>
-
-              {/* Sample Review */}
-              <div className="p-6 bg-card border border-border rounded-2xl shadow-sm">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">JD</div>
-                    <div>
-                      <div className="font-bold">John Doe</div>
-                      <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">2 days ago</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-0.5 text-amber-500">
-                    <Star className="w-3 h-3 fill-current" />
-                    <Star className="w-3 h-3 fill-current" />
-                    <Star className="w-3 h-3 fill-current" />
-                    <Star className="w-3 h-3 fill-current" />
-                    <Star className="w-3 h-3 fill-current" />
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Excellent tool! The accuracy and speed are exactly what I was looking for. Highly recommended for students.
-                </p>
-              </div>
+            <div className="bg-red-500/5 rounded-3xl p-8 border border-red-500/10">
+              <h3 className="text-lg font-bold text-red-600 mb-6 flex items-center gap-2">
+                <div className="h-2 w-8 bg-red-500 rounded-full"></div> Cons
+              </h3>
+              <ul className="space-y-4">
+                {tool.cons?.map((con, i) => (
+                  <li key={i} className="flex gap-3 text-sm font-medium text-muted-foreground">
+                    <div className="w-4 h-4 rounded-full border-2 border-red-500/30 shrink-0 mt-0.5" /> {con}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Actions & Sidebar */}
-        <div className="space-y-8 sticky top-24 h-fit">
-          <div className="bg-card border border-border rounded-2xl p-8 shadow-xl">
-            <h3 className="text-xl font-bold mb-6">Quick Actions</h3>
-            <a 
-              href={tool.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all mb-4 shadow-lg shadow-blue-500/25 active:scale-95"
-            >
-              Visit Website <ExternalLink className="w-5 h-5" />
-            </a>
-            
-            {tool.modelInfo?.credits && (
-              <div className="bg-secondary/50 p-4 rounded-xl border border-border/50 mb-6 flex items-center gap-3">
-                <Zap className="w-5 h-5 text-amber-500 fill-amber-500" />
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Free Credits</div>
-                  <div className="font-bold text-sm">{tool.modelInfo.credits}</div>
-                </div>
-              </div>
-            )}
-
-            <button 
-              onClick={toggleFavourite}
-              className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 transition-all border border-border mb-4 font-semibold ${
-                isFavourite ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-secondary hover:bg-secondary/80 text-foreground'
-              }`}
-            >
-              <Heart className={`w-5 h-5 ${isFavourite ? 'fill-current' : ''}`} /> 
-              {isFavourite ? 'Saved to Favorites' : 'Save to Favorites'}
-            </button>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-2 border-b border-border/50">
-                <span className="text-sm text-muted-foreground">Pricing Model</span>
-                <span className="font-bold">{tool.pricing}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/50">
-                <span className="text-sm text-muted-foreground">API Available</span>
-                <span className="font-bold">{tool.modelInfo?.apiAccess ? 'Yes' : 'No'}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-muted-foreground">Category</span>
-                <span className="font-bold">{tool.category}</span>
-              </div>
-            </div>
-
-            <button className="w-full mt-8 py-3 bg-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20">
-              <MessageSquare className="w-5 h-5" /> Write a Review
-            </button>
-          </div>
-
+        {/* Right Column: Sidebar */}
+        <div className="space-y-12">
           {/* Related Tools */}
-          {relatedTools.length > 0 && (
-            <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <h3 className="font-bold mb-6 flex items-center gap-2">
-                Similar to {tool.name}
-              </h3>
-              <div className="space-y-4">
-                {relatedTools.map(t => (
-                  <Link 
-                    to={`/tools/${t._id}`} 
-                    key={t._id}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                  >
-                    <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center flex-shrink-0 border border-border overflow-hidden p-1">
-                       <img 
-                         src={`https://www.google.com/s2/favicons?domain=${new URL(t.link).hostname}&sz=64`} 
-                         alt={t.name} 
-                         className="h-full w-full object-contain"
-                         onError={(e) => {
-                           e.target.onerror = null;
-                           e.target.src = `https://ui-avatars.com/api/?name=${t.name}&background=0D8ABC&color=fff&size=64`;
-                         }}
-                       />
-                    </div>
-                    <div className="overflow-hidden">
-                      <div className="font-bold text-sm group-hover:text-blue-500 transition-colors truncate">{t.name}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{t.pricing}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+               <TrendingUp className="w-5 h-5 text-blue-500" /> Similar Tools
+            </h3>
+            <div className="space-y-6">
+              {relatedTools.map(t => (
+                <Link key={t._id} to={`/tools/${t._id}`} className="flex items-center gap-4 group">
+                  <div className="h-12 w-12 rounded-xl bg-white border border-border flex items-center justify-center p-2 group-hover:border-blue-500 transition-colors shrink-0">
+                    <img src={`https://www.google.com/s2/favicons?domain=${new URL(t.link).hostname}&sz=64`} alt="" className="w-full h-full object-contain" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm truncate group-hover:text-blue-500 transition-colors">{t.name}</h4>
+                    <p className="text-xs text-muted-foreground truncate">{t.pricing}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

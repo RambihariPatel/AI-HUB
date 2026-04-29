@@ -77,26 +77,27 @@ const ToolsDirectory = () => {
         </div>
       </div>
 
-      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-10">
+      <div className="flex flex-col lg:grid lg:grid-cols-4 gap-8 lg:gap-10">
         {/* Sidebar Filters */}
-        <div className="space-y-8">
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm sticky top-24">
-            <div className="flex items-center gap-2 mb-6 font-bold text-lg">
+        <div className="lg:col-span-1">
+          <div className="bg-card border border-border rounded-2xl p-4 lg:p-6 shadow-sm lg:sticky lg:top-24">
+            <div className="hidden lg:flex items-center gap-2 mb-6 font-bold text-lg">
               <Filter className="w-5 h-5 text-blue-500" /> Filters
             </div>
 
-            <div className="space-y-6">
+            <div className="flex flex-col gap-6 lg:gap-8">
+              {/* Category Filter - Mobile Scrollable, Desktop Stacked */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 block">Category</label>
-                <div className="flex flex-wrap gap-2 lg:flex-col lg:gap-1">
+                <label className="text-[10px] lg:text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 block">Category</label>
+                <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
                   {categories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
-                      className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`whitespace-nowrap lg:whitespace-normal text-left px-4 py-2 lg:px-3 lg:py-2 rounded-xl text-sm font-bold transition-all shrink-0 lg:shrink ${
                         category === cat 
                           ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                          : 'hover:bg-secondary text-muted-foreground hover:text-foreground'
+                          : 'bg-secondary/50 lg:bg-transparent hover:bg-secondary text-muted-foreground hover:text-foreground border border-transparent lg:border-none'
                       }`}
                     >
                       {cat}
@@ -105,20 +106,21 @@ const ToolsDirectory = () => {
                 </div>
               </div>
 
+              {/* Pricing Filter */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 block">Pricing Model</label>
-                <div className="grid grid-cols-2 lg:grid-cols-1 gap-2">
+                <label className="text-[10px] lg:text-xs font-black uppercase tracking-wider text-muted-foreground mb-3 block">Pricing Model</label>
+                <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-hide no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
                   {pricingModels.map(model => (
                     <button
                       key={model}
                       onClick={() => setPricing(model)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
+                      className={`whitespace-nowrap lg:whitespace-normal px-4 py-2 lg:px-3 lg:py-2 rounded-xl text-sm font-bold transition-all border shrink-0 lg:shrink ${
                         pricing === model 
                           ? 'bg-blue-600/10 border-blue-500 text-blue-600' 
                           : 'bg-background border-border text-muted-foreground hover:border-blue-500/40'
                       }`}
                     >
-                      {model === 'Freemium' ? 'Free Tier Available' : model}
+                      {model === 'Freemium' ? 'Free Tier' : model}
                     </button>
                   ))}
                 </div>
@@ -126,7 +128,7 @@ const ToolsDirectory = () => {
               
               <button 
                 onClick={() => { setCategory('All Categories'); setPricing('All Pricing'); setSearchQuery(''); }}
-                className="w-full mt-4 flex items-center justify-center gap-2 text-xs font-bold uppercase text-muted-foreground hover:text-blue-500 transition-colors"
+                className="hidden lg:flex w-full mt-4 items-center justify-center gap-2 text-xs font-bold uppercase text-muted-foreground hover:text-blue-500 transition-colors"
               >
                 <RefreshCw className="w-3 h-3" /> Reset Filters
               </button>
