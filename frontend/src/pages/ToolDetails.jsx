@@ -68,9 +68,14 @@ const ToolDetails = () => {
   useEffect(() => {
     if (user && id && !historyAddedRef.current) {
       historyAddedRef.current = true;
-      api.post('/api/users/history', { toolId: id }).catch(err => console.error('History error:', err));
+      api.post('/api/users/history', { toolId: id })
+        .then(({ data }) => {
+          // Update global context so it's instant everywhere
+          updateUser({ history: data.history });
+        })
+        .catch(err => console.error('History error:', err));
     }
-  }, [user, id]);
+  }, [user, id, updateUser]);
 
   const toggleFavourite = async () => {
     if (!user) {

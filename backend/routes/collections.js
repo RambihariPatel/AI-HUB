@@ -42,7 +42,9 @@ router.post('/add-tool', protect, async (req, res) => {
             col.tools.push(toolId);
             await col.save();
         }
-        res.json({ message: 'Tool added', collection: col });
+        
+        const populatedCol = await Collection.findById(col._id).populate('tools');
+        res.json({ message: 'Tool added', collection: populatedCol });
     } catch (err) {
         console.error('ADD TOOL ERROR:', err.message);
         res.status(500).json({ message: err.message });
@@ -53,12 +55,16 @@ router.post('/add-tool', protect, async (req, res) => {
 router.post('/remove-tool', protect, async (req, res) => {
     try {
         const { collectionId, toolId } = req.body;
-        const col = await Collection.findOne({ _id: collectionId, user: req.user._id });
+        
+        const col = await Collection.findOneAndUpdate(
+            { _id: collectionId, user: req.user._id },
+            { $pull: { tools: toolId } },
+            { new: true }
+        ).populate('tools');
+
         if (!col) return res.status(404).json({ message: 'Collection not found' });
 
-        col.tools = col.tools.filter(t => t.toString() !== toolId.toString());
-        await col.save();
-        res.json({ message: 'Tool removed' });
+        res.json({ message: 'Tool removed', collection: col });
     } catch (err) {
         console.error('REMOVE TOOL ERROR:', err.message);
         res.status(500).json({ message: err.message });
