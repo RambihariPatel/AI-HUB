@@ -8,7 +8,23 @@ const Home = () => {
   const [filteredGroupedTools, setFilteredGroupedTools] = useState({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [trendingTools, setTrendingTools] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
   
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const { data } = await api.get('/api/tools/trending');
+        setTrendingTools(data);
+        setTrendingLoading(false);
+      } catch (error) {
+        console.error('Error fetching trending tools', error);
+        setTrendingLoading(false);
+      }
+    };
+    fetchTrending();
+  }, []);
+
   useEffect(() => {
     const fetchTools = async () => {
       try {
@@ -27,15 +43,32 @@ const Home = () => {
           return acc;
         }, {});
 
+        // Fixed category display order
+        const CATEGORY_ORDER = [
+          'Writing', 'Coding', 'Image', 'Video', 
+          'Audio', 'Automation', 'Marketing', 
+          'Education', 'Productivity', 'Data'
+        ];
+
         // Sort each category by pricing order
         Object.keys(grouped).forEach(category => {
           grouped[category].sort((a, b) => {
             return (pricingOrder[a.pricing] ?? 99) - (pricingOrder[b.pricing] ?? 99);
           });
         });
-        
-        setGroupedTools(grouped);
-        setFilteredGroupedTools(grouped);
+
+        // Apply fixed category order
+        const ordered = {};
+        CATEGORY_ORDER.forEach(cat => {
+          if (grouped[cat]) ordered[cat] = grouped[cat];
+        });
+        // Add any extra categories not in list
+        Object.keys(grouped).forEach(cat => {
+          if (!ordered[cat]) ordered[cat] = grouped[cat];
+        });
+
+        setGroupedTools(ordered);
+        setFilteredGroupedTools(ordered);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching tools', error);
@@ -114,6 +147,63 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Trending Section */}
+      {!searchQuery && trendingTools.length > 0 && (
+        <section className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-orange-500/10 rounded-xl flex items-center justify-center">
+                <Zap className="w-6 h-6 text-orange-500 fill-orange-500" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-black">Trending Now</h2>
+                <p className="text-sm text-muted-foreground font-medium">Most loved tools by the community this week</p>
+              </div>
+            </div>
+            <Link to="/tools" className="hidden sm:flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              Explore All <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {trendingTools.map((tool, idx) => (
+              <Link 
+                key={tool._id} 
+                to={`/tools/${tool._id}`}
+                className="group relative bg-slate-900 rounded-[2rem] p-6 overflow-hidden border border-white/5 hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 shadow-2xl"
+              >
+                {/* Number Badge */}
+                <div className="absolute -top-2 -right-2 text-8xl font-black text-white/5 italic select-none group-hover:text-blue-500/10 transition-colors">
+                  {idx + 1}
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="h-12 w-12 bg-white rounded-xl mb-4 p-2 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                    <img 
+                      src={`https://www.google.com/s2/favicons?domain=${new URL(tool.link).hostname}&sz=128`} 
+                      alt="" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <h3 className="text-white font-bold text-lg mb-1 group-hover:text-blue-400 transition-colors truncate pr-8">{tool.name}</h3>
+                  <p className="text-slate-400 text-xs font-medium line-clamp-1 mb-4">{tool.tagline}</p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                      <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                      <span className="text-xs font-bold text-white">{tool.rating}</span>
+                    </div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-blue-500">
+                      Trending 🔥
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Category Sections */}
       <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-16 space-y-20">

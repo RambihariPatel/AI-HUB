@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useUser, useAuth as useClerkAuth } from '@clerk/clerk-react';
 import api from '../api/client';
 
@@ -11,31 +11,68 @@ export const AuthProvider = ({ children }) => {
   const { getToken } = useClerkAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const prevClerkUserIdRef = useRef(null);
+  const tokenRefreshTimer = useRef(null);
+
+  // Refresh token every 50 seconds (Clerk tokens expire after ~60s)
+  const startTokenRefresh = useCallback(async () => {
+    const refreshToken = async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          localStorage.setItem('token', token);
+        }
+      } catch (e) {
+        console.error('Token refresh error:', e);
+      }
+    };
+
+    // Clear existing timer
+    if (tokenRefreshTimer.current) clearInterval(tokenRefreshTimer.current);
+    
+    // Refresh every 50 seconds
+    tokenRefreshTimer.current = setInterval(refreshToken, 50 * 1000);
+  }, [getToken]);
 
   useEffect(() => {
+    const currentId = clerkUser?.id ?? null;
+    if (!clerkLoaded) return;
+    if (currentId === prevClerkUserIdRef.current) return;
+    prevClerkUserIdRef.current = currentId;
+
     const syncUser = async () => {
-      if (clerkLoaded && clerkUser) {
+      if (clerkUser) {
         try {
-          // Send Clerk token to our backend for verification and profile fetch
           const token = await getToken();
-          localStorage.setItem('token', token); // Still use localStorage for our api client interceptor
+          if (!token) {
+            setLoading(false);
+            return;
+          }
+          localStorage.setItem('token', token);
 
           const { data } = await api.get('/api/auth/me');
           setUser(data);
+
+          // Start periodic token refresh
+          startTokenRefresh();
         } catch (error) {
-          console.error('Error syncing user with backend', error);
-          // If user doesn't exist in our DB yet, the backend 'me' route should handle creation
-          // or we can handle it here if needed.
+          console.error('Error syncing user:', error);
+          setUser(null);
         }
-      } else if (clerkLoaded && !clerkUser) {
+      } else {
         setUser(null);
         localStorage.removeItem('token');
+        if (tokenRefreshTimer.current) clearInterval(tokenRefreshTimer.current);
       }
       setLoading(false);
     };
 
     syncUser();
-  }, [clerkUser, clerkLoaded, getToken]);
+
+    return () => {
+      if (tokenRefreshTimer.current) clearInterval(tokenRefreshTimer.current);
+    };
+  }, [clerkUser, clerkLoaded]);
 
   const updateUser = (data) => {
     setUser(prev => ({ ...prev, ...data }));

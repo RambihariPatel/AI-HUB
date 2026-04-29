@@ -1,13 +1,10 @@
 import axios from 'axios';
 
-// Centralized axios instance — all API calls go through here.
-// To change the backend URL for any environment (dev/staging/production),
-// just update VITE_API_URL in your .env file.
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
 });
 
-// Request interceptor: automatically attaches the JWT token to every request
+// Request interceptor: attach token from localStorage
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -19,14 +16,30 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: handles 401 globally (expired/invalid token)
+// Response interceptor: on 401, try to refresh token via Clerk
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid — clear local auth and let Clerk handle the session
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        // Try to get a fresh token from Clerk (window.__clerk is available after Clerk loads)
+        if (window.Clerk?.session) {
+          const freshToken = await window.Clerk.session.getToken();
+          if (freshToken) {
+            localStorage.setItem('token', freshToken);
+            originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+            return api(originalRequest); // Retry with new token
+          }
+        }
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+      }
       localStorage.removeItem('token');
     }
+
     return Promise.reject(error);
   }
 );

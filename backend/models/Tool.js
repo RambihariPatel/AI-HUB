@@ -42,6 +42,15 @@ const toolSchema = new mongoose.Schema({
         type: String,
         enum: ['High', 'Medium', 'Low'],
         default: 'Medium'
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'approved'],
+        default: 'approved'
+    },
+    submittedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 }, { timestamps: true });
 

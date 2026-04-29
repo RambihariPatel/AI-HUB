@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Moon, Sun, Menu } from 'lucide-react';
+import { Moon, Sun, Menu, Rocket, Folder } from 'lucide-react';
 import { useState } from 'react';
 import { 
   SignedIn, 
@@ -32,6 +32,9 @@ const Navbar = () => {
             <Link to="/tools" className="text-sm lg:text-base text-foreground hover:text-blue-600 transition-colors font-medium">Directory</Link>
             <Link to="/categories" className="text-sm lg:text-base text-foreground hover:text-blue-600 transition-colors font-medium">Categories</Link>
             <Link to="/compare" className="text-sm lg:text-base text-foreground hover:text-blue-600 transition-colors font-medium">Compare</Link>
+            <Link to="/submit-tool" className="text-sm lg:text-base text-blue-600 hover:text-blue-700 transition-colors font-bold flex items-center gap-1">
+              <Rocket className="w-4 h-4" /> Submit
+            </Link>
           </div>
 
           {/* Desktop Right Section */}
@@ -58,9 +61,10 @@ const Navbar = () => {
 
               <SignedIn>
                 <div className="flex items-center gap-4 animate-in fade-in duration-300">
-                  <Link to="/profile" className="hidden lg:block text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
-                    {user?.name || 'Profile'}
+                  <Link to="/profile" className="hidden lg:flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
+                    <Folder className="w-4 h-4 text-blue-600" /> {user?.name || 'Profile'}
                   </Link>
+                  <div className="h-4 w-[1px] bg-border hidden lg:block"></div>
                   <UserButton 
                     afterSignOutUrl="/"
                     appearance={{
@@ -94,6 +98,7 @@ const Navbar = () => {
             <Link to="/tools" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Directory</Link>
             <Link to="/categories" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Categories</Link>
             <Link to="/compare" className="block px-3 py-2 rounded-md text-base font-medium hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Compare</Link>
+            <Link to="/submit-tool" className="block px-3 py-2 rounded-md text-base font-bold text-blue-600 hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Submit Tool 🚀</Link>
             <div className="pt-4 border-t border-border flex justify-between items-center px-3">
               <SignedOut>
                 <SignInButton mode="modal">
@@ -104,7 +109,9 @@ const Navbar = () => {
               </SignedOut>
               <SignedIn>
                 <div className="flex items-center justify-between w-full">
-                  <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold">My Profile</Link>
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="text-sm font-bold flex items-center gap-2">
+                    <Folder className="w-4 h-4 text-blue-600" /> My Profile
+                  </Link>
                   <UserButton afterSignOutUrl="/" />
                 </div>
               </SignedIn>

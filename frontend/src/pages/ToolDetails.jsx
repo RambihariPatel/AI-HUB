@@ -1,8 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
-import { Star, ExternalLink, Check, ArrowRight, Zap, Info, TrendingUp, Heart } from 'lucide-react';
+import { 
+  Star, 
+  Globe, 
+  Heart, 
+  ArrowLeft, 
+  Share2, 
+  CheckCircle, 
+  XCircle, 
+  Info, 
+  Zap, 
+  Shield, 
+  TrendingUp,
+  FolderPlus,
+  ExternalLink,
+  Check,
+  ArrowRight
+} from 'lucide-react';
+import ReviewSection from '../components/ReviewSection';
+import CollectionModal from '../components/CollectionModal';
 
 const ToolDetails = () => {
   const { id } = useParams();
@@ -13,27 +31,21 @@ const ToolDetails = () => {
   const [loading, setLoading] = useState(true);
   const [relatedTools, setRelatedTools] = useState([]);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
 
+  const historyAddedRef = useRef(false);
+
+  // Fetch tool data — only re-runs when ID changes
   useEffect(() => {
+    historyAddedRef.current = false; // reset on tool change
     const fetchToolDetails = async () => {
       try {
         setLoading(true);
         const { data } = await api.get(`/api/tools/${id}`);
         setTool(data);
 
-        // Fetch related tools in same category
         const { data: catData } = await api.get(`/api/tools?category=${data.category}`);
         setRelatedTools(catData.tools.filter(t => t._id !== id).slice(0, 4));
-        
-        // Check if is favourite
-        if (user && user.favourites) {
-          setIsFavourite(user.favourites.includes(id));
-        }
-
-        // Add to history if logged in
-        if (user) {
-          api.post('/api/users/history', { toolId: id }).catch(err => console.error("History error:", err));
-        }
 
         setLoading(false);
       } catch (error) {
@@ -42,7 +54,23 @@ const ToolDetails = () => {
       }
     };
     fetchToolDetails();
-  }, [id, user]);
+  }, [id]);
+
+  // Update favourite status when user loads
+  useEffect(() => {
+    if (user && user.favourites) {
+      const favIds = user.favourites.filter(f => f).map(f => f._id || f);
+      setIsFavourite(favIds.includes(id));
+    }
+  }, [user, id]);
+
+  // Add to history ONCE per tool visit
+  useEffect(() => {
+    if (user && id && !historyAddedRef.current) {
+      historyAddedRef.current = true;
+      api.post('/api/users/history', { toolId: id }).catch(err => console.error('History error:', err));
+    }
+  }, [user, id]);
 
   const toggleFavourite = async () => {
     if (!user) {
@@ -51,7 +79,7 @@ const ToolDetails = () => {
     }
     try {
       const { data } = await api.post('/api/users/favourites', { toolId: id });
-      setIsFavourite(!isFavourite);
+      // Update global context - the useEffect will handle local setIsFavourite
       updateUser({ favourites: data.favourites });
     } catch (error) {
       console.error('Error toggling favourite', error);
@@ -91,9 +119,10 @@ const ToolDetails = () => {
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-center lg:items-start text-center lg:text-left">
           <div className="h-24 w-24 lg:h-32 lg:w-32 rounded-3xl bg-white border border-border flex items-center justify-center p-4 shadow-xl shrink-0">
             <img 
-              src={`https://www.google.com/s2/favicons?domain=${new URL(tool.link).hostname}&sz=128`} 
+              src={tool.link ? `https://www.google.com/s2/favicons?domain=${new URL(tool.link).hostname}&sz=128` : ''} 
               alt={tool.name} 
               className="w-full h-full object-contain"
+              onError={(e) => e.target.style.display = 'none'}
             />
           </div>
           <div className="flex-1 min-w-0 w-full">
@@ -124,14 +153,22 @@ const ToolDetails = () => {
               </a>
               <button 
                 onClick={toggleFavourite}
-                className={`w-full sm:w-auto px-10 py-4 font-bold rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 border ${
+                className={`p-3.5 rounded-2xl border transition-all ${
                   isFavourite 
-                    ? 'bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white' 
-                    : 'bg-secondary text-foreground border-transparent hover:border-border'
+                    ? 'bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/25' 
+                    : 'bg-card text-muted-foreground border-border hover:border-red-500 hover:text-red-500'
                 }`}
+                title={isFavourite ? "Remove from Favorites" : "Add to Favorites"}
               >
                 <Heart className={`w-5 h-5 ${isFavourite ? 'fill-current' : ''}`} />
-                {isFavourite ? 'Saved' : 'Save to Favorites'}
+              </button>
+              
+              <button 
+                onClick={() => setIsCollectionModalOpen(true)}
+                className="p-3.5 rounded-2xl bg-card text-muted-foreground border border-border hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
+                title="Save to Collection"
+              >
+                <FolderPlus className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -249,6 +286,24 @@ const ToolDetails = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div className="mt-20 border-t border-border pt-20">
+        <ReviewSection 
+          toolId={id} 
+          onReviewAdded={() => {
+            // Re-fetch tool details to update the average rating and count
+            api.get(`/api/tools/${id}`).then(({ data }) => setTool(data));
+          }} 
+        />
+        <CollectionModal 
+          isOpen={isCollectionModalOpen} 
+          onClose={() => setIsCollectionModalOpen(false)}
+          toolId={id}
+          toolName={tool.name}
+          toolLink={tool.link}
+        />
       </div>
     </div>
   );

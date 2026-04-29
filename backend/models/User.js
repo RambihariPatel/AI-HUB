@@ -24,6 +24,9 @@ const userSchema = new mongoose.Schema({
         unique: true,
         sparse: true
     },
+    imageUrl: {
+        type: String
+    },
     favourites: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tool'

@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Tool = require('../models/Tool');
-const Review = require('../models/Review');
 const { protect } = require('../middleware/auth');
 
 // @route   GET /api/tools
-// @desc    Get all tools with pagination, search, and filtering
+// @desc    Get all approved tools with pagination, search, and filtering
 router.get('/', async (req, res) => {
     try {
         const pageSize = Number(req.query.pageSize) || 12;
@@ -23,10 +22,12 @@ router.get('/', async (req, res) => {
         const pricingFilter = req.query.pricing ? { pricing: req.query.pricing } : {};
         const useCaseFilter = req.query.useCase ? { useCases: req.query.useCase } : {};
 
-        const filter = { ...keyword, ...categoryFilter, ...pricingFilter, ...useCaseFilter };
+        // ONLY show approved tools in the main list
+        const filter = { ...keyword, ...categoryFilter, ...pricingFilter, ...useCaseFilter, status: 'approved' };
 
         const count = await Tool.countDocuments(filter);
         const tools = await Tool.find(filter)
+            .sort({ createdAt: -1 })
             .limit(pageSize)
             .skip(pageSize * (page - 1));
 
@@ -36,11 +37,54 @@ router.get('/', async (req, res) => {
     }
 });
 
+// @route   POST /api/tools/submit
+// @desc    Submit a new tool for approval
+router.post('/submit', protect, async (req, res) => {
+    try {
+        const { name, link, category, tagline, descriptionShort, descriptionLong, pricing, features, pros, cons } = req.body;
+
+        // CHECK FOR DUPLICATES (Name or Link)
+        const existingTool = await Tool.findOne({ 
+            $or: [
+                { name: { $regex: new RegExp(`^${name}$`, 'i') } },
+                { link: link.toLowerCase().trim() }
+            ]
+        });
+
+        if (existingTool) {
+            return res.status(400).json({ 
+                message: 'This tool or URL is already in our directory!' 
+            });
+        }
+
+        const tool = await Tool.create({
+            name,
+            link: link.toLowerCase().trim(),
+            category,
+            tagline,
+            descriptionShort,
+            descriptionLong,
+            pricing,
+            features,
+            pros,
+            cons,
+            status: 'pending',
+            submittedBy: req.user._id,
+            rating: 0,
+            numReviews: 0
+        });
+
+        res.status(201).json({ message: 'Tool submitted with full details!', tool });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @route   GET /api/tools/trending
-// @desc    Get top trending tools (by popularity or rating)
+// @desc    Get top trending tools (approved only)
 router.get('/trending', async (req, res) => {
     try {
-        const tools = await Tool.find({}).sort({ rating: -1, monthlyUsers: -1 }).limit(10);
+        const tools = await Tool.find({ status: 'approved' }).sort({ rating: -1 }).limit(10);
         res.json(tools);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -57,54 +101,6 @@ router.get('/:id', async (req, res) => {
         } else {
             res.status(404).json({ message: 'Tool not found' });
         }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// @route   POST /api/tools/:id/reviews
-// @desc    Create new review
-router.post('/:id/reviews', protect, async (req, res) => {
-    const { rating, comment } = req.body;
-
-    try {
-        const tool = await Tool.findById(req.params.id);
-
-        if (tool) {
-            const alreadyReviewed = await Review.findOne({ tool: tool._id, user: req.user._id });
-
-            if (alreadyReviewed) {
-                return res.status(400).json({ message: 'Product already reviewed' });
-            }
-
-            const review = await Review.create({
-                rating: Number(rating),
-                comment,
-                user: req.user._id,
-                tool: tool._id
-            });
-
-            const allReviews = await Review.find({ tool: tool._id });
-            
-            tool.numReviews = allReviews.length;
-            tool.rating = allReviews.reduce((acc, item) => item.rating + acc, 0) / allReviews.length;
-
-            await tool.save();
-            res.status(201).json({ message: 'Review added' });
-        } else {
-            res.status(404).json({ message: 'Tool not found' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// @route   GET /api/tools/:id/reviews
-// @desc    Get reviews for a tool
-router.get('/:id/reviews', async (req, res) => {
-    try {
-        const reviews = await Review.find({ tool: req.params.id }).populate('user', 'name');
-        res.json(reviews);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

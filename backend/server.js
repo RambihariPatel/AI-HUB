@@ -1,21 +1,16 @@
-const express = require('express'); // Trigger restart
+const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-// Load env vars
 dotenv.config();
-
-// Connect to database
 connectDB();
 
 const app = express();
 
-// Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// CORS - Allow specific origins for production safety
 const corsOptions = {
     origin: process.env.FRONTEND_URL || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -24,16 +19,19 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-
 // Route files
 const authRoutes = require('./routes/auth');
 const toolsRoutes = require('./routes/tools');
 const usersRoutes = require('./routes/users');
+const reviewsRoutes = require('./routes/reviews');
+const collectionRoutes = require('./routes/collections');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/reviews', reviewsRoutes);
+app.use('/api/collections', collectionRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
@@ -42,13 +40,11 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-    res.status(statusCode);
-    res.json({
+    res.status(statusCode).json({
         message: err.message,
         stack: process.env.NODE_ENV === 'production' ? null : err.stack,
     });
 });
 
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -8,6 +8,7 @@ import ToolDetails from './pages/ToolDetails';
 import Categories from './pages/Categories';
 import Compare from './pages/Compare';
 import Profile from './pages/Profile';
+import SubmitTool from './pages/SubmitTool';
 import { RedirectToSignIn, SignedOut, SignedIn } from '@clerk/clerk-react';
 
 // Protected Route Component
@@ -41,12 +42,13 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/tools" element={<ToolsDirectory />} />
+            <Route path="/tools/:id" element={<ToolDetails />} />
+            <Route path="/compare" element={<Compare />} />
             
             {/* Protected Pages */}
-            <Route path="/tools/:id" element={<ProtectedRoute><ToolDetails /></ProtectedRoute>} />
             <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
-            <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/submit-tool" element={<ProtectedRoute><SubmitTool /></ProtectedRoute>} />
             
             {/* Redirect any legacy auth routes back to home */}
             <Route path="/login" element={<Navigate to="/" replace />} />
