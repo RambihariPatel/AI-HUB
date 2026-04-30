@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express'); // Final key update, let's go!
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -25,6 +25,9 @@ const toolsRoutes = require('./routes/tools');
 const usersRoutes = require('./routes/users');
 const reviewsRoutes = require('./routes/reviews');
 const collectionRoutes = require('./routes/collections');
+const aiRoutes = require('./routes/ai');
+const notificationRoutes = require('./routes/notifications');
+const adminRoutes = require('./routes/admin');
 
 // Mount routers
 app.use('/api/auth', authRoutes);
@@ -32,6 +35,9 @@ app.use('/api/tools', toolsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/collections', collectionRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

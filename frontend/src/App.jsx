@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ChatAssistant from './components/ChatAssistant';
 import Home from './pages/Home';
 import ToolsDirectory from './pages/ToolsDirectory';
 import ToolDetails from './pages/ToolDetails';
@@ -9,6 +10,7 @@ import Categories from './pages/Categories';
 import Compare from './pages/Compare';
 import Profile from './pages/Profile';
 import SubmitTool from './pages/SubmitTool';
+import AdminDashboard from './pages/AdminDashboard';
 import { RedirectToSignIn, SignedOut, SignedIn } from '@clerk/clerk-react';
 
 // Protected Route Component
@@ -33,6 +35,19 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  
+  if (user && user.role === 'admin') {
+    return children;
+  }
+
+  return <Navigate to="/" replace />;
+};
+
 function App() {
   return (
     <Router>
@@ -49,6 +64,7 @@ function App() {
             <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/submit-tool" element={<ProtectedRoute><SubmitTool /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
             
             {/* Redirect any legacy auth routes back to home */}
             <Route path="/login" element={<Navigate to="/" replace />} />
@@ -56,6 +72,7 @@ function App() {
           </Routes>
         </main>
         <Footer />
+        <ChatAssistant />
       </div>
     </Router>
   );

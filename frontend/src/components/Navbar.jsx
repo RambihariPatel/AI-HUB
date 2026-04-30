@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Moon, Sun, Menu, Rocket, Folder } from 'lucide-react';
+import { Moon, Sun, Menu, Rocket, Folder, Bell, ShieldCheck } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
 import { useState } from 'react';
 import { 
   SignedIn, 
   SignedOut, 
-  SignInButton, 
+  SignInButton,
+  SignUpButton, 
   UserButton 
 } from "@clerk/clerk-react";
 
@@ -43,6 +45,10 @@ const Navbar = () => {
               {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-blue-600" />}
             </button>
             
+            <SignedIn>
+              <NotificationCenter />
+            </SignedIn>
+            
             <div className="min-w-[120px] flex justify-end">
               <SignedOut>
                 <div className="flex items-center gap-2 animate-in fade-in duration-300">
@@ -51,16 +57,21 @@ const Navbar = () => {
                       Sign In
                     </button>
                   </SignInButton>
-                  <SignInButton mode="modal">
+                  <SignUpButton mode="modal">
                     <button className="px-4 py-1.5 text-xs lg:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg shadow-blue-500/25">
                       Sign Up
                     </button>
-                  </SignInButton>
+                  </SignUpButton>
                 </div>
               </SignedOut>
 
               <SignedIn>
                 <div className="flex items-center gap-4 animate-in fade-in duration-300">
+                  {user?.role === 'admin' && (
+                    <Link to="/admin" className="hidden lg:flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                      <ShieldCheck className="w-4 h-4" /> Admin
+                    </Link>
+                  )}
                   <Link to="/profile" className="hidden lg:flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors">
                     <Folder className="w-4 h-4 text-blue-600" /> {user?.name || 'Profile'}
                   </Link>
@@ -83,6 +94,9 @@ const Navbar = () => {
             <button onClick={toggleTheme} className="p-2 rounded-xl hover:bg-muted transition-colors">
               {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-blue-600" />}
             </button>
+            <SignedIn>
+              <NotificationCenter />
+            </SignedIn>
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-xl hover:bg-muted transition-colors border border-border">
               <Menu className="w-6 h-6" />
             </button>
@@ -101,11 +115,18 @@ const Navbar = () => {
             <Link to="/submit-tool" className="block px-3 py-2 rounded-md text-base font-bold text-blue-600 hover:bg-muted" onClick={() => setIsMenuOpen(false)}>Submit Tool 🚀</Link>
             <div className="pt-4 border-t border-border flex justify-between items-center px-3">
               <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md">
-                    Sign In
-                  </button>
-                </SignInButton>
+                <div className="flex flex-col gap-2 w-full">
+                  <SignInButton mode="modal">
+                    <button className="w-full px-4 py-2 text-sm font-medium text-foreground bg-muted rounded-md">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal">
+                    <button className="w-full px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md">
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </div>
               </SignedOut>
               <SignedIn>
                 <div className="flex items-center justify-between w-full">

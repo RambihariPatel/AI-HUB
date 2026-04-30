@@ -36,7 +36,12 @@ const userSchema = new mongoose.Schema({
         ref: 'Tool'
     }],
     resetPasswordToken: String,
-    resetPasswordExpire: Date
+    resetPasswordExpire: Date,
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
