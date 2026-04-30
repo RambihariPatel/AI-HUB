@@ -49,6 +49,11 @@ app.get('/api/make-admin-emergency', async (req, res) => {
     }
 });
 
+// HEALTH CHECK
+app.get('/api/test-deploy', (req, res) => {
+    res.json({ status: 'OK', version: 'VIP_PASS_ACTIVE' });
+});
+
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolsRoutes);
