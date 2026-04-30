@@ -72,7 +72,16 @@ const AdminDashboard = () => {
                         <ShieldCheck size={28} />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black">Admin Dashboard</h1>
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-4xl font-black">Admin Dashboard</h1>
+                            <button 
+                                onClick={handleSeed}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold shadow-lg shadow-purple-500/25 hover:scale-105 transition-all disabled:opacity-50"
+                            >
+                                <ShieldCheck size={14} /> Seed Data
+                            </button>
+                        </div>
                         <p className="text-muted-foreground">Control center for AI HUB directory</p>
                     </div>
                 </div>
