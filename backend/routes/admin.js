@@ -99,6 +99,36 @@ router.post('/seed', protect, admin, async (req, res) => {
                 pricing: "Paid",
                 status: "approved",
                 rating: 4.7
+            },
+            {
+                name: "Claude 3",
+                link: "https://claude.ai",
+                category: "LLM",
+                tagline: "Anthropic's most intelligent model",
+                descriptionShort: "A highly capable AI model focused on safety and nuanced reasoning.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.8
+            },
+            {
+                name: "Perplexity AI",
+                link: "https://www.perplexity.ai",
+                category: "Search",
+                tagline: "AI-powered search engine",
+                descriptionShort: "An AI search engine that provides direct answers with citations.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.6
+            },
+            {
+                name: "Canva AI",
+                link: "https://www.canva.com",
+                category: "Design",
+                tagline: "Magic design tools for everyone",
+                descriptionShort: "AI-powered design tools to create presentations, social media, and more.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.5
             }
         ];
 
