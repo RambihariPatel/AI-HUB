@@ -91,6 +91,17 @@ router.get('/trending', async (req, res) => {
     }
 });
 
+// @route   GET /api/tools/categories
+// @desc    Get all unique tool categories
+router.get('/categories', async (req, res) => {
+    try {
+        const categories = await Tool.distinct('category', { status: 'approved' });
+        res.json(categories);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 // @route   GET /api/tools/:id
 // @desc    Get single tool by ID
 router.get('/:id', async (req, res) => {

@@ -51,6 +51,19 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleSeed = async () => {
+        try {
+            setLoading(true);
+            const { data } = await api.post('/api/admin/seed');
+            setMessage({ type: 'success', text: data.message });
+            fetchTools();
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Failed to seed sample tools.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pt-24 min-h-screen">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
@@ -64,24 +77,35 @@ const AdminDashboard = () => {
                     </div>
                 </div>
 
-                {/* View Toggles */}
-                <div className="flex p-1 bg-muted rounded-2xl border border-border">
+                <div className="flex items-center gap-3">
+                    {/* Seed Button (Visible only in All Tools view or for new DBs) */}
                     <button 
-                        onClick={() => setView('pending')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                            view === 'pending' ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600' : 'text-muted-foreground hover:text-foreground'
-                        }`}
+                        onClick={handleSeed}
+                        disabled={loading}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-lg shadow-purple-500/25 hover:scale-105 transition-all disabled:opacity-50"
                     >
-                        <Clock size={16} /> Pending
+                        <ShieldCheck size={18} /> Seed Sample Tools
                     </button>
-                    <button 
-                        onClick={() => setView('all')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                            view === 'all' ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600' : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                    >
-                        <LayoutGrid size={16} /> All Tools
-                    </button>
+
+                    {/* View Toggles */}
+                    <div className="flex p-1 bg-muted rounded-2xl border border-border">
+                        <button 
+                            onClick={() => setView('pending')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                                view === 'pending' ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            <Clock size={16} /> Pending
+                        </button>
+                        <button 
+                            onClick={() => setView('all')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                                view === 'all' ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            <LayoutGrid size={16} /> All Tools
+                        </button>
+                    </div>
                 </div>
             </div>
 

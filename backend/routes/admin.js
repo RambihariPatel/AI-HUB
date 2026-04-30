@@ -65,4 +65,48 @@ router.delete('/reject/:id', protect, admin, async (req, res) => {
     }
 });
 
+// @route   POST /api/admin/seed
+// @desc    Seed sample tools (Admin only)
+router.post('/seed', protect, admin, async (req, res) => {
+    try {
+        const sampleTools = [
+            {
+                name: "Gemini Pro",
+                link: "https://deepmind.google/technologies/gemini/",
+                category: "LLM",
+                tagline: "Google's most capable AI model",
+                descriptionShort: "A multimodal AI model capable of reasoning across text, images, and video.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.8
+            },
+            {
+                name: "ChatGPT",
+                link: "https://chat.openai.com",
+                category: "LLM",
+                tagline: "Conversational AI by OpenAI",
+                descriptionShort: "The world's most popular AI chatbot for text generation and assistance.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.9
+            },
+            {
+                name: "Midjourney",
+                link: "https://www.midjourney.com",
+                category: "Image Generation",
+                tagline: "Artistic AI image generation",
+                descriptionShort: "Create stunning artistic images from simple text prompts via Discord.",
+                pricing: "Paid",
+                status: "approved",
+                rating: 4.7
+            }
+        ];
+
+        await Tool.insertMany(sampleTools);
+        res.json({ message: 'Database seeded successfully with 3 tools!' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
