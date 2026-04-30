@@ -138,10 +138,18 @@ router.post('/seed', protect, admin, async (req, res) => {
             }
         ];
 
+        // Optional: Clear existing tools to avoid duplicates during seeding
+        await Tool.deleteMany({ status: 'approved' });
+
         await Tool.insertMany(sampleTools);
-        res.json({ message: 'Database seeded successfully with 3 tools!' });
+        res.json({ 
+            message: `Database seeded successfully with ${sampleTools.length} tools!`,
+            timestamp: new Date().toISOString(),
+            version: "V2_SCHEMA_FIXED"
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Seed Error:', error);
+        res.status(500).json({ message: error.message, details: error.errors });
     }
 });
 
