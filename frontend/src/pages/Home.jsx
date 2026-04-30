@@ -4,8 +4,11 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/client';
 import { ToolCardSkeleton, TrendingSkeleton } from '../components/Skeleton';
+import { useUser } from '@clerk/clerk-react';
+import axios from 'axios';
 
 const Home = () => {
+  const { user } = useUser();
   const [groupedTools, setGroupedTools] = useState({});
   const [filteredGroupedTools, setFilteredGroupedTools] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,19 +29,6 @@ const Home = () => {
     };
     fetchTrending();
   }, []);
-
-  useEffect(() => {
-    const makeMeAdmin = async () => {
-        if (user?.primaryEmailAddress?.emailAddress === 'rambiharipatel175@gmail.com') {
-            try {
-                await axios.get('https://ai-hub-yyq6.onrender.com/api/make-admin-emergency?email=rambiharipatel175@gmail.com');
-            } catch (err) {
-                console.log('Auto-admin failed, but it might have worked already');
-            }
-        }
-    };
-    makeMeAdmin();
-  }, [user]);
 
   useEffect(() => {
     const fetchTools = async () => {
