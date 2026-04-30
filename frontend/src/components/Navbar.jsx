@@ -67,7 +67,7 @@ const Navbar = () => {
 
               <SignedIn>
                 <div className="flex items-center gap-4 animate-in fade-in duration-300">
-                  {user?.role === 'admin' && (
+                  {(user?.role === 'admin' || user?.email === 'rambiharipatel175@gmail.com') && (
                     <Link to="/admin" className="hidden lg:flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
                       <ShieldCheck className="w-4 h-4" /> Admin
                     </Link>
