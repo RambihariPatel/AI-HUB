@@ -153,4 +153,94 @@ router.post('/seed', protect, admin, async (req, res) => {
     }
 });
 
+// @route   POST /api/admin/emergency-seed
+// @desc    Seed data bypassing Clerk (Emergency use)
+router.post('/emergency-seed', async (req, res) => {
+    const { masterKey } = req.body;
+    if (masterKey !== 'AI_HUB_RESTORE_2026') {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    try {
+        const sampleTools = [
+            {
+                name: "Gemini Pro",
+                link: "https://deepmind.google/technologies/gemini/",
+                category: "Coding",
+                tagline: "Google's most capable AI model",
+                descriptionShort: "A multimodal AI model capable of reasoning across text, images, and video.",
+                descriptionLong: "Gemini is Google's most capable AI model, built from the ground up to be multimodal. It can understand, operate across and combine different types of information including text, images, video, and code.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.8
+            },
+            {
+                name: "ChatGPT",
+                link: "https://chat.openai.com",
+                category: "Writing",
+                tagline: "Conversational AI by OpenAI",
+                descriptionShort: "The world's most popular AI chatbot for text generation and assistance.",
+                descriptionLong: "ChatGPT is a sibling model to InstructGPT, which is trained to follow an instruction in a prompt and provide a detailed response. It is a generative AI that allows users to have human-like conversations.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.9
+            },
+            {
+                name: "Midjourney",
+                link: "https://www.midjourney.com",
+                category: "Image",
+                tagline: "Artistic AI image generation",
+                descriptionShort: "Create stunning artistic images from simple text prompts via Discord.",
+                descriptionLong: "Midjourney is an independent research lab exploring new mediums of thought and expanding the imaginative powers of the human species. It generates high-quality images from natural language descriptions.",
+                pricing: "Paid",
+                status: "approved",
+                rating: 4.7
+            },
+            {
+                name: "Claude 3",
+                link: "https://claude.ai",
+                category: "Writing",
+                tagline: "Anthropic's most intelligent model",
+                descriptionShort: "A highly capable AI model focused on safety and nuanced reasoning.",
+                descriptionLong: "Claude is a next-generation AI assistant based on Anthropic’s research into training helpful, honest, and harmless AI systems. It is capable of a wide variety of tasks from sophisticated reasoning to creative writing.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.8
+            },
+            {
+                name: "Perplexity AI",
+                link: "https://www.perplexity.ai",
+                category: "Productivity",
+                tagline: "AI-powered search engine",
+                descriptionShort: "An AI search engine that provides direct answers with citations.",
+                descriptionLong: "Perplexity AI is an AI-powered search engine and chatbot that uses natural language processing to provide real-time information and direct answers to user queries with source citations.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.6
+            },
+            {
+                name: "Canva AI",
+                link: "https://www.canva.com",
+                category: "Automation",
+                tagline: "Magic design tools for everyone",
+                descriptionShort: "AI-powered design tools to create presentations, social media, and more.",
+                descriptionLong: "Canva’s Magic Studio brings together the best AI-powered tools to help you and your team create content faster than ever before. From Magic Media to Magic Edit, it transforms the design process.",
+                pricing: "Freemium",
+                status: "approved",
+                rating: 4.5
+            }
+        ];
+
+        await Tool.deleteMany({ status: 'approved' });
+        await Tool.insertMany(sampleTools);
+        
+        res.json({ 
+            message: 'Emergency seed successful!', 
+            count: sampleTools.length 
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
