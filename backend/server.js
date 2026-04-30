@@ -29,6 +29,26 @@ const aiRoutes = require('./routes/ai');
 const notificationRoutes = require('./routes/notifications');
 const adminRoutes = require('./routes/admin');
 
+// EMERGENCY ADMIN ROUTE (Temporary)
+const User = require('./models/User');
+app.get('/api/make-admin-emergency', async (req, res) => {
+    try {
+        const { email } = req.query;
+        const user = await User.findOneAndUpdate(
+            { email: email.toLowerCase().trim() },
+            { role: 'admin' },
+            { new: true }
+        );
+        if (user) {
+            res.send(`<h1>Success! ${email} is now an ADMIN.</h1><p>Please refresh your website.</p>`);
+        } else {
+            res.send(`<h1>User not found!</h1><p>Make sure you have signed in to the website first.</p>`);
+        }
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
 // Mount routers
 app.use('/api/auth', authRoutes);
 app.use('/api/tools', toolsRoutes);
@@ -52,25 +72,6 @@ app.use((err, req, res, next) => {
     });
 });
 
-// EMERGENCY ADMIN ROUTE (Temporary)
-const User = require('./models/User');
-app.get('/api/make-admin-emergency', async (req, res) => {
-    try {
-        const { email } = req.query;
-        const user = await User.findOneAndUpdate(
-            { email: email.toLowerCase().trim() },
-            { role: 'admin' },
-            { new: true }
-        );
-        if (user) {
-            res.send(`<h1>Success! ${email} is now an ADMIN.</h1><p>Please refresh your website.</p>`);
-        } else {
-            res.send(`<h1>User not found!</h1><p>Make sure you have signed in to the website first.</p>`);
-        }
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
