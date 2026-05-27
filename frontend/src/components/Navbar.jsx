@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, BrainCircuit, Sun, Moon, Package2 } from 'lucide-react';
+import { Search, Menu, X, User, LogOut, LayoutDashboard, BrainCircuit, Sun, Moon, Package2, Heart } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -19,6 +19,15 @@ const Navbar = () => {
   const [compareCount, setCompareCount] = useState(() => {
     try {
       const stored = localStorage.getItem('compareTools');
+      return stored ? JSON.parse(stored).length : 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  const [favoritesCount, setFavoritesCount] = useState(() => {
+    try {
+      const stored = localStorage.getItem('favoritesList');
       return stored ? JSON.parse(stored).length : 0;
     } catch {
       return 0;
@@ -50,9 +59,22 @@ const Navbar = () => {
         setCompareCount(0);
       }
     };
+    
+    const handleFavoritesUpdate = () => {
+      try {
+        const stored = localStorage.getItem('favoritesList');
+        setFavoritesCount(stored ? JSON.parse(stored).length : 0);
+      } catch {
+        setFavoritesCount(0);
+      }
+    };
 
     window.addEventListener('compareUpdated', handleCompareUpdate);
-    return () => window.removeEventListener('compareUpdated', handleCompareUpdate);
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+    return () => {
+      window.removeEventListener('compareUpdated', handleCompareUpdate);
+      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
+    };
   }, []);
 
   return (
@@ -85,6 +107,17 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            
+            {user && (
+              <Link to="/dashboard" className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
+                <Heart className="w-4 h-4 text-rose-500" />
+                {favoritesCount > 0 && (
+                  <span className="bg-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                    {favoritesCount}
+                  </span>
+                )}
+              </Link>
+            )}
             
             <button 
               onClick={toggleTheme}
@@ -158,6 +191,20 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            
+            {user && (
+              <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-slate-300 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-rose-500" />
+                  <span>Favorites</span>
+                </div>
+                {favoritesCount > 0 && (
+                  <span className="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+                    {favoritesCount}
+                  </span>
+                )}
+              </Link>
+            )}
             
             <button 
               onClick={() => { toggleTheme(); setIsMenuOpen(false); }}
