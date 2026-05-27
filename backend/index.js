@@ -11,6 +11,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import collectionRoutes from './routes/collectionRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import toolkitRoutes from './routes/toolkitRoutes.js';
 
 dotenv.config();
 
@@ -75,6 +76,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/toolkits', toolkitRoutes);
 
 // Database connection
 const PORT = process.env.PORT || 5000;

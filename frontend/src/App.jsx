@@ -9,6 +9,7 @@ import Category from './pages/Category';
 import ToolDetails from './pages/ToolDetails';
 import SubmitTool from './pages/SubmitTool';
 import Dashboard from './pages/Dashboard';
+import Toolkits from './pages/Toolkits';
 import AIChatbot from './components/AIChatbot';
 import ToolModal from './components/ToolModal';
 
@@ -38,6 +39,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/compare" element={<Compare />} />
+        <Route path="/toolkits" element={<Toolkits />} />
         <Route path="/category/:categoryName" element={<Category />} />
         <Route path="/tool/:id" element={<ToolDetails />} />
         <Route path="/submit-tool" element={<SubmitTool />} />
