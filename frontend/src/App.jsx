@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Home from './pages/Home';
@@ -9,8 +9,18 @@ import Category from './pages/Category';
 import ToolDetails from './pages/ToolDetails';
 import SubmitTool from './pages/SubmitTool';
 import Dashboard from './pages/Dashboard';
+import AIChatbot from './components/AIChatbot';
+import ToolModal from './components/ToolModal';
 
 function App() {
+  const [chatSelectedTool, setChatSelectedTool] = useState(null);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+
+  const handleChatToolClick = (tool) => {
+    setChatSelectedTool(tool);
+    setIsChatModalOpen(true);
+  };
+
   return (
     <>
       <Toaster 
@@ -34,6 +44,14 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<Dashboard />} />
       </Routes>
+
+      {/* Global Floating AI Chatbot */}
+      <AIChatbot onToolClick={handleChatToolClick} />
+      <ToolModal
+        tool={chatSelectedTool}
+        isOpen={isChatModalOpen}
+        onClose={() => setIsChatModalOpen(false)}
+      />
     </>
   );
 }
