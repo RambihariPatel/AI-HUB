@@ -79,19 +79,43 @@ const detectIntent = (q) => {
 // ─── Fetch tools from backend ─────────────────────────────────────────────────
 const fetchTools = async (intent) => {
   try {
-    const params = {};
+    const buildParams = (pricingOverride) => {
+      const params = {};
+      if (intent.category) params.category = intent.category;
+      if (pricingOverride) params.pricing = pricingOverride;
+      // Strip pricing keywords from core query to avoid confusing the backend search
+      const cleanQuery = (intent.coreQuery || '')
+        .replace(/\b(free|paid|freemium|muft|bedaam|gratis|premium|trial)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (cleanQuery.length > 1) params.search = cleanQuery;
+      return params;
+    };
 
-    if (intent.category) params.category = intent.category;
-    if (intent.pricing) params.pricing = intent.pricing;
-    // Use the core query as search param if there's something meaningful
-    if (intent.coreQuery && intent.coreQuery.length > 1) {
-      params.search = intent.coreQuery;
+    let results;
+
+    // When user asks for "free", also include Freemium tools
+    // because many popular tools (ChatGPT, Gemini, etc.) are Freemium but have a free tier
+    if (intent.pricing === 'Free') {
+      const [freeData, freemiumData] = await Promise.all([
+        axios.get(`${API}/tools`, { params: buildParams('Free') }).then(r => r.data),
+        axios.get(`${API}/tools`, { params: buildParams('Freemium') }).then(r => r.data),
+      ]);
+      // Merge, deduplicate by _id, Free tools first
+      const seen = new Set();
+      results = [...freeData, ...freemiumData].filter(t => {
+        if (seen.has(t._id)) return false;
+        seen.add(t._id);
+        return true;
+      });
+    } else {
+      const params = buildParams(intent.pricing || null);
+      const { data } = await axios.get(`${API}/tools`, { params });
+      results = data;
     }
 
-    const { data } = await axios.get(`${API}/tools`, { params });
-
     // Sort: rating desc, clicks desc
-    const sorted = [...data].sort((a, b) =>
+    const sorted = [...results].sort((a, b) =>
       (b.rating - a.rating) || (b.clicks - a.clicks)
     );
 
@@ -117,7 +141,9 @@ const buildResponseText = (intent, tools) => {
 
   const parts = [];
   if (intent.category) parts.push(`**${intent.category}**`);
-  if (intent.pricing) parts.push(`**${intent.pricing}**`);
+  // When searching Free, we also include Freemium — reflect that in label
+  if (intent.pricing === 'Free') parts.push('**Free & Freemium**');
+  else if (intent.pricing) parts.push(`**${intent.pricing}**`);
   const label = parts.length ? parts.join(' + ') : 'AI';
 
   if (tools.length === 1) {
