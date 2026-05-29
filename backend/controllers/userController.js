@@ -9,11 +9,11 @@ export const addToFavorites = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
 
-    const isAlreadyFavorited = user.favorites.some((id) => id.toString() === toolId);
+    const isAlreadyFavorited = user.favorites.some((id) => id?.toString() === toolId);
 
     if (isAlreadyFavorited) {
       // Remove from favorites if already exists
-      user.favorites = user.favorites.filter((id) => id.toString() !== toolId);
+      user.favorites = user.favorites.filter((id) => id?.toString() !== toolId);
       await user.save();
       return res.json({ message: 'Removed from favorites', favorites: user.favorites });
     }
@@ -23,6 +23,7 @@ export const addToFavorites = async (req, res) => {
 
     res.json({ message: 'Added to favorites', favorites: user.favorites });
   } catch (error) {
+    console.error("addToFavorites error:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -87,10 +88,10 @@ export const toggleSubscription = async (req, res) => {
       user.alertSubscriptions = [];
     }
 
-    const isSubscribed = user.alertSubscriptions.some((id) => id.toString() === toolId.toString());
+    const isSubscribed = user.alertSubscriptions.some((id) => id?.toString() === toolId.toString());
 
     if (isSubscribed) {
-      user.alertSubscriptions = user.alertSubscriptions.filter((id) => id.toString() !== toolId.toString());
+      user.alertSubscriptions = user.alertSubscriptions.filter((id) => id?.toString() !== toolId.toString());
       await user.save();
       return res.json({ message: 'Unsubscribed from alerts', alertSubscriptions: user.alertSubscriptions });
     }

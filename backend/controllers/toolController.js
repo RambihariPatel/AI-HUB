@@ -5,7 +5,7 @@ import Notification from '../models/Notification.js';
 // @desc    Fetch all tools with filtering and search
 // @route   GET /api/tools
 export const getTools = async (req, res) => {
-  const { category, pricing, search, rating } = req.query;
+  const { category, pricing, search, rating, modelFilter } = req.query;
 
   let query = { isApproved: { $ne: false } };
 
@@ -15,6 +15,16 @@ export const getTools = async (req, res) => {
 
   if (pricing && pricing !== 'All') {
     query.pricing = pricing;
+  }
+
+  // Filter: tools with a completely free model (freeAvailable: true)
+  if (modelFilter === 'freeModel') {
+    query['modelInfo.freeAvailable'] = true;
+  }
+
+  // Filter: tools that offer credits system
+  if (modelFilter === 'credits') {
+    query['modelInfo.credits'] = { $exists: true, $nin: [null, '', 'None', 'N/A'] };
   }
 
   if (search) {

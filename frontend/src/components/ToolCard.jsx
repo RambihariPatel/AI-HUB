@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ArrowRight, ExternalLink, TrendingUp, Users, MousePointer2, ShieldCheck, Zap, GitCompare, Heart, Bell } from 'lucide-react';
+import { Star, ArrowRight, ExternalLink, TrendingUp, Users, MousePointer2, ShieldCheck, Zap, GitCompare, Heart, Bell, BookmarkPlus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -137,12 +137,50 @@ const ToolCard = ({ tool }) => {
     }
   };
 
-  const handleToggleFavorite = (e) => {
+  const handleToggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!user) {
       toast.error('Please log in to save tools! ❤️');
+      return;
+    }
+
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/users/favorites', 
+        { toolId: tool._id },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      
+      const isFav = data.favorites.some(id => id?.toString() === tool._id);
+      
+      const { data: cols } = await axios.get('http://localhost:5000/api/collections', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      
+      const favIds = data.favorites.map(id => id?.toString()).filter(Boolean);
+      const colIds = cols.flatMap(c => c.tools.map(t => t._id || t));
+      const allSavedIds = Array.from(new Set([...favIds, ...colIds]));
+      
+      localStorage.setItem('favoritesList', JSON.stringify(allSavedIds));
+      window.dispatchEvent(new Event('favoritesUpdated'));
+      
+      if (isFav) {
+        toast.success('Added to Favorites! ❤️');
+      } else {
+        toast.success('Removed from Favorites.');
+      }
+    } catch (error) {
+      toast.error('Failed to update favorites.');
+    }
+  };
+
+  const handleOpenCollections = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      toast.error('Please log in to save to folders! 📂');
       return;
     }
 
@@ -235,6 +273,15 @@ const ToolCard = ({ tool }) => {
               }`}
             >
               <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-rose-400 text-rose-400' : ''}`} />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.92 }}
+              onClick={handleOpenCollections}
+              title="Save to Folder"
+              className="p-2 rounded-xl border transition-all duration-300 bg-slate-950/40 text-slate-500 border-white/5 hover:text-white hover:border-slate-700"
+            >
+              <BookmarkPlus className="w-3.5 h-3.5" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.15 }}

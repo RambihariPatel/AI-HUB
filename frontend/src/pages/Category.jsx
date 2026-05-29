@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import ToolCard from '../components/ToolCard';
 import { motion } from 'framer-motion';
-import { Filter, Sparkles, ChevronRight, Star } from 'lucide-react';
+import { Filter, Sparkles, ChevronRight, Star, Coins, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AnimatedMeshGradient from '../components/AnimatedMeshGradient';
 import SkeletonCard from '../components/SkeletonCard';
@@ -17,12 +17,13 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(categoryName || 'All');
   const [pricingFilter, setPricingFilter] = useState('All');
+  const [modelFilter, setModelFilter] = useState('all');
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState('rating');
 
   useEffect(() => {
     fetchTools();
-  }, [activeCategory, pricingFilter, minRating, sortBy]);
+  }, [activeCategory, pricingFilter, modelFilter, minRating, sortBy]);
 
   const fetchTools = async () => {
     try {
@@ -31,6 +32,7 @@ const CategoryPage = () => {
         params: {
           category: activeCategory !== 'All' ? activeCategory : undefined,
           pricing: pricingFilter !== 'All' ? pricingFilter : undefined,
+          modelFilter: modelFilter !== 'all' ? modelFilter : undefined,
           rating: minRating > 0 ? minRating : undefined
         }
       });
@@ -116,6 +118,34 @@ const CategoryPage = () => {
 
                 <div className="h-8 w-[1px] bg-white/10 hidden md:block mx-2" />
 
+                {/* Model Type Filter */}
+                <div className="flex items-center bg-slate-950/50 rounded-xl p-1 border border-white/5">
+                  {[
+                    { key: 'all', label: 'All Models', icon: null },
+                    { key: 'freeModel', label: 'Free Model', icon: <Gift className="w-3 h-3" /> },
+                    { key: 'credits', label: 'Credits', icon: <Coins className="w-3 h-3" /> },
+                  ].map(({ key, label, icon }) => (
+                    <button
+                      key={key}
+                      onClick={() => setModelFilter(key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5 ${
+                        modelFilter === key
+                          ? key === 'freeModel'
+                            ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
+                            : key === 'credits'
+                            ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/20'
+                            : 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                          : 'text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      {icon}
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="h-8 w-[1px] bg-white/10 hidden md:block mx-2" />
+
                 {/* Rating Filter */}
                 <div className="flex items-center space-x-2 bg-slate-950/50 rounded-xl px-3 py-1.5 border border-white/5">
                   <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
@@ -165,7 +195,7 @@ const CategoryPage = () => {
                   <h3 className="text-xl font-bold text-white mb-2">No tools matched your filters</h3>
                   <p className="text-slate-500 max-w-xs mx-auto">Try adjusting your filters or category to find what you're looking for.</p>
                   <button 
-                    onClick={() => { setPricingFilter('All'); setMinRating(0); }}
+                    onClick={() => { setPricingFilter('All'); setModelFilter('all'); setMinRating(0); }}
                     className="mt-8 text-indigo-400 font-bold hover:text-indigo-300 transition-colors"
                   >
                     Reset All Filters

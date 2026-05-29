@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { X, Plus, Folder, Check, Loader2, Heart } from 'lucide-react';
@@ -55,11 +56,11 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
-      const isFav = data.favorites.some(id => id.toString() === tool._id);
+      const isFav = data.favorites.some(id => id?.toString() === tool._id);
       setIsGeneralFavorited(isFav);
 
       // Update favoritesList in localStorage with the merged list
-      const favIds = data.favorites.map(id => id.toString());
+      const favIds = data.favorites.map(id => id?.toString()).filter(Boolean);
       const colIds = collections.flatMap(c => c.tools.map(t => t._id || t));
       const allSavedIds = Array.from(new Set([...favIds, ...colIds]));
       localStorage.setItem('favoritesList', JSON.stringify(allSavedIds));
@@ -133,9 +134,9 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -252,7 +253,8 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
           )}
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

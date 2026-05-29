@@ -7,7 +7,7 @@ import {
   Star, ExternalLink, CheckCircle2, AlertCircle, 
   Cpu, CreditCard, Users, Zap, ThumbsUp, ThumbsDown, 
   MessageSquare, ChevronLeft, Globe, ShieldCheck, 
-  Share2, ArrowRight, TrendingUp, User, X, GitCompare, Heart, Bell
+  Share2, ArrowRight, TrendingUp, User, X, GitCompare, Heart, Bell, BookmarkPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -188,9 +188,45 @@ const ToolDetails = () => {
     }
   };
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = async () => {
     if (!user) {
       toast.error('Please log in to save tools! ❤️');
+      return;
+    }
+    
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/users/favorites', 
+        { toolId: tool._id },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      
+      const isFav = data.favorites.some(id => id?.toString() === tool._id);
+      setIsFavorited(isFav);
+      
+      const { data: cols } = await axios.get('http://localhost:5000/api/collections', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      
+      const favIds = data.favorites.map(id => id?.toString()).filter(Boolean);
+      const colIds = cols.flatMap(c => c.tools.map(t => t._id || t));
+      const allSavedIds = Array.from(new Set([...favIds, ...colIds]));
+      
+      localStorage.setItem('favoritesList', JSON.stringify(allSavedIds));
+      window.dispatchEvent(new Event('favoritesUpdated'));
+      
+      if (isFav) {
+        toast.success('Added to Favorites! ❤️');
+      } else {
+        toast.success('Removed from Favorites.');
+      }
+    } catch (error) {
+      toast.error('Failed to update favorites.');
+    }
+  };
+
+  const handleOpenCollections = () => {
+    if (!user) {
+      toast.error('Please log in to save to folders! 📂');
       return;
     }
     setIsSaveModalOpen(true);
@@ -366,6 +402,13 @@ const ToolDetails = () => {
               }`}
             >
               <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
+            </button>
+            <button 
+              onClick={handleOpenCollections}
+              title="Save to Folder"
+              className="p-3 rounded-xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all shadow-lg hover:shadow-indigo-500/10 active:scale-95 flex items-center justify-center"
+            >
+              <BookmarkPlus className="w-5 h-5" />
             </button>
             <button 
               onClick={handleToggleCompare}
