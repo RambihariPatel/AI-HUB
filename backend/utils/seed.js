@@ -1,3 +1,5 @@
+import dns from 'dns';
+dns.setServers(['8.8.8.8']);
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Tool from '../models/Tool.js';
