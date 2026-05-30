@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import AnimatedMeshGradient from '../components/AnimatedMeshGradient';
 import ToolModal from '../components/ToolModal';
 
@@ -465,6 +466,7 @@ const Toolkits = () => {
           </motion.section>
         )}
       </main>
+      <Footer />
 
       {/* Toolkit Drawer */}
       <ToolkitDrawer

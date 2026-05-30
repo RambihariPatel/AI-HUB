@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import ToolCard from '../components/ToolCard';
 import ToolModal from '../components/ToolModal';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, TrendingUp, Search, X, ChevronRight, Heart } from 'lucide-react';
+import { 
+  Sparkles, ArrowRight, TrendingUp, Search, X, ChevronRight, Heart,
+  PenTool, Code, Image, Video, Music, Database, CheckSquare, Megaphone,
+  GraduationCap, Cpu, Palette, DollarSign, Scale, Users, ShieldCheck, Briefcase
+} from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import AnimatedMeshGradient from '../components/AnimatedMeshGradient';
@@ -103,6 +108,25 @@ const Home = () => {
   const handleToolClick = (tool) => {
     setSelectedTool(tool);
     setIsModalOpen(true);
+  };
+
+  const categoryMeta = {
+    'Writing': { icon: <PenTool className="w-5 h-5 text-indigo-400" />, bg: 'hover:border-indigo-500/30' },
+    'Coding': { icon: <Code className="w-5 h-5 text-cyan-400" />, bg: 'hover:border-cyan-500/30' },
+    'Image': { icon: <Image className="w-5 h-5 text-purple-400" />, bg: 'hover:border-purple-500/30' },
+    'Video': { icon: <Video className="w-5 h-5 text-rose-400" />, bg: 'hover:border-rose-500/30' },
+    'Audio': { icon: <Music className="w-5 h-5 text-emerald-400" />, bg: 'hover:border-emerald-500/30' },
+    'Data': { icon: <Database className="w-5 h-5 text-amber-400" />, bg: 'hover:border-amber-500/30' },
+    'Productivity': { icon: <CheckSquare className="w-5 h-5 text-violet-400" />, bg: 'hover:border-violet-500/30' },
+    'Marketing': { icon: <Megaphone className="w-5 h-5 text-pink-400" />, bg: 'hover:border-pink-500/30' },
+    'Education': { icon: <GraduationCap className="w-5 h-5 text-teal-400" />, bg: 'hover:border-teal-500/30' },
+    'Automation': { icon: <Cpu className="w-5 h-5 text-orange-400" />, bg: 'hover:border-orange-500/30' },
+    'Design': { icon: <Palette className="w-5 h-5 text-lime-400" />, bg: 'hover:border-lime-500/30' },
+    'Logo Maker': { icon: <Sparkles className="w-5 h-5 text-yellow-400" />, bg: 'hover:border-yellow-500/30' },
+    'Finance': { icon: <DollarSign className="w-5 h-5 text-green-400" />, bg: 'hover:border-green-500/30' },
+    'Legal': { icon: <Scale className="w-5 h-5 text-sky-400" />, bg: 'hover:border-sky-500/30' },
+    'HR': { icon: <Users className="w-5 h-5 text-fuchsia-400" />, bg: 'hover:border-fuchsia-500/30' },
+    'Cybersecurity': { icon: <ShieldCheck className="w-5 h-5 text-red-400" />, bg: 'hover:border-red-500/30' }
   };
 
   return (
@@ -249,7 +273,7 @@ const Home = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {trendingTools.slice(0, 10).map(tool => (
+              {trendingTools.slice(0, 6).map(tool => (
                 <ToolCard key={tool._id} tool={tool} onClick={handleToolClick} />
               ))}
             </div>
@@ -269,55 +293,57 @@ const Home = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {favoritedTools.slice(0, 10).map(tool => (
+              {favoritedTools.slice(0, 6).map(tool => (
                 <ToolCard key={tool._id} tool={tool} onClick={handleToolClick} />
               ))}
             </div>
           </section>
         )}
 
-        {/* Category Sections */}
-        {loading ? (
-          <div className="space-y-16">
-            <div className="space-y-6">
-              <div className="h-8 w-48 bg-slate-900/40 border border-white/5 rounded-lg shimmer mb-4" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <SkeletonCard key={i} />
-                ))}
+        {/* Category Showcase Grid (App-Store Style) */}
+        {!loading && (
+          <section className="mb-24">
+            <div className="flex items-center justify-between mb-8 border-l-4 border-indigo-600 pl-6">
+              <div>
+                <h2 className="text-3xl font-black text-white">Explore by Category</h2>
+                <p className="text-slate-500 text-sm mt-1">Slick quick-access directories of premium AI assistants</p>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-20">
-            {categories.map(category => (
-              categoriesData[category] && (
-                <section key={category} className="scroll-mt-24">
-                  <div className="flex items-center justify-between mb-8 border-l-4 border-indigo-600 pl-6">
-                    <div>
-                      <h2 className="text-3xl font-black text-white">{category} Tools</h2>
-                      <p className="text-slate-500 text-sm mt-1">Explore top-rated {category.toLowerCase()} assistants</p>
-                    </div>
-                    <Link 
-                      to={`/category/${category}`}
-                      className="group flex items-center space-x-2 text-indigo-400 hover:text-white transition-colors font-bold text-sm"
-                    >
-                      <span>See all {category}</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {categoriesData[category].slice(0, 10).map(tool => (
-                      <ToolCard key={tool._id} tool={tool} onClick={handleToolClick} />
-                    ))}
-                  </div>
-                </section>
-              )
-            ))}
-          </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {categories.map((category, index) => {
+                const meta = categoryMeta[category] || { icon: <Sparkles className="w-5 h-5 text-indigo-400" />, bg: 'hover:border-indigo-500/30' };
+                const count = categoriesData[category]?.length || 0;
+                return (
+                  <motion.div
+                    key={category}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    onClick={() => navigate(`/category/${category}`)}
+                    className={`glass-card-premium rounded-2xl p-5 border border-white/5 flex flex-col justify-between hover:scale-[1.03] transition-all duration-300 cursor-pointer ${meta.bg}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="p-2.5 bg-slate-900 border border-white/5 rounded-xl">
+                        {meta.icon}
+                      </div>
+                      <span className="text-[9px] font-black uppercase text-indigo-400/80 bg-indigo-500/5 px-2 py-0.5 rounded-full border border-indigo-500/10">
+                        {count} Tools
+                      </span>
+                    </div>
+                    <div className="mt-6 flex items-center justify-between group">
+                      <h3 className="text-sm font-black text-white group-hover:text-indigo-400 transition-colors">{category}</h3>
+                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </section>
         )}
       </main>
+
+      <Footer />
 
       <ToolModal 
         tool={selectedTool} 

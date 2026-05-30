@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import Footer from '../components/Footer';
 import ToolCard from '../components/ToolCard';
 import { Filter, Sparkles, ChevronRight, Star, Coins, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -207,6 +208,7 @@ const CategoryPage = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

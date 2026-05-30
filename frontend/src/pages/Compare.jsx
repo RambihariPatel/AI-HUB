@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { 
   Search, X, Check, Minus, Star, ExternalLink, Zap, Users, MousePointer2, 
   Cpu, ShieldCheck, AlertCircle, ThumbsUp, ThumbsDown, Trophy, ArrowRight,
@@ -444,6 +445,7 @@ const Compare = () => {
           )}
         </AnimatePresence>
       </main>
+      <Footer />
     </div>
   );
 };

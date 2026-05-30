@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import ToolCard from '../components/ToolCard';
 import { 
   Star, ExternalLink, CheckCircle2, AlertCircle, 
@@ -1105,6 +1106,7 @@ const ToolDetails = () => {
           </section>
         )}
       </main>
+      <Footer />
       <SaveToCollectionModal
         isOpen={isSaveModalOpen}
         onClose={() => setIsSaveModalOpen(false)}
