@@ -114,7 +114,7 @@ const Compare = () => {
 
         {/* Selection Area */}
         <div className="flex flex-col lg:flex-row gap-8 mb-16 items-stretch">
-          <div className="lg:w-1/2 flex flex-col justify-between glass-card-premium rounded-[2.5rem] p-8 border border-white/5 relative overflow-hidden">
+          <div className="lg:w-1/2 flex flex-col justify-between glass-card-premium rounded-3xl p-5 md:p-8 border border-white/5 relative z-30">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
@@ -184,7 +184,7 @@ const Compare = () => {
           {/* Selected Tools Preview */}
           <div className="lg:w-1/2 flex flex-col sm:flex-row gap-4 items-stretch">
             {[0, 1].map(index => (
-              <div key={index} className="flex-1 glass-card-premium rounded-[2.5rem] p-6 flex flex-col items-center justify-center border-dashed border-2 border-white/5 min-h-[200px] group relative overflow-hidden transition-all duration-300 hover:border-indigo-500/20">
+              <div key={index} className="flex-1 glass-card-premium rounded-3xl p-5 md:p-6 flex flex-col items-center justify-center border-dashed border-2 border-white/5 min-h-[200px] group relative overflow-hidden transition-all duration-300 hover:border-indigo-500/20">
                 {selectedTools[index] ? (
                   <motion.div 
                     initial={{ scale: 0.92, opacity: 0 }}
@@ -245,7 +245,7 @@ const Compare = () => {
                 </div>
 
                 {/* Column 1: Tool A Card */}
-                <div className="relative glass-card-premium rounded-[2.5rem] p-8 border border-white/10 text-center bg-gradient-to-b from-indigo-950/20 to-slate-950/40 hover:border-indigo-500/20 transition-all duration-300 flex flex-col justify-between">
+                <div className="relative glass-card-premium rounded-3xl p-5 md:p-8 border border-white/10 text-center bg-gradient-to-b from-indigo-950/20 to-slate-950/40 hover:border-indigo-500/20 transition-all duration-300 flex flex-col justify-between">
                   {winnerIndex === 0 && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 text-[9px] font-black uppercase tracking-widest px-3.5 py-1.5 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] flex items-center gap-1.5 animate-pulse">
                       <Trophy className="w-3.5 h-3.5 fill-slate-950" />
@@ -279,7 +279,7 @@ const Compare = () => {
                 </div>
 
                 {/* Column 2: Tool B Card */}
-                <div className="relative glass-card-premium rounded-[2.5rem] p-8 border border-white/10 text-center bg-gradient-to-b from-purple-950/20 to-slate-950/40 hover:border-purple-500/20 transition-all duration-300 flex flex-col justify-between">
+                <div className="relative glass-card-premium rounded-3xl p-5 md:p-8 border border-white/10 text-center bg-gradient-to-b from-purple-950/20 to-slate-950/40 hover:border-purple-500/20 transition-all duration-300 flex flex-col justify-between">
                   {winnerIndex === 1 && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 text-[9px] font-black uppercase tracking-widest px-3.5 py-1.5 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] flex items-center gap-1.5 animate-pulse">
                       <Trophy className="w-3.5 h-3.5 fill-slate-950" />
@@ -469,7 +469,7 @@ const GridRow = ({ label, children }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4 py-6 border-b border-white/5 last:border-0 hover:bg-white/[0.01] transition-colors -mx-6 px-6">
       {/* Parameter Label */}
-      <div className="flex items-center text-xs font-black text-slate-500 uppercase tracking-widest md:normal-case md:text-sm md:font-bold md:text-slate-400">
+      <div className="flex items-center justify-center md:justify-start text-xs font-black text-slate-500 uppercase tracking-widest md:normal-case md:text-sm md:font-bold md:text-slate-400 mb-2 md:mb-0">
         {label}
       </div>
       
