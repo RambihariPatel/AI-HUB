@@ -152,7 +152,7 @@ const Compare = () => {
                           >
                             <div className="w-10 h-10 rounded-xl bg-slate-900 p-2 mr-3 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                               <img 
-                                src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                                 alt={tool.name} 
                                 className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform" 
                               />
@@ -199,7 +199,7 @@ const Compare = () => {
                     </button>
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 p-3.5 border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden mb-4 shrink-0">
                       <img 
-                        src={`/api/utils/proxy-logo?domain=${getHostname(selectedTools[index].link)}&name=${encodeURIComponent(selectedTools[index].name)}`}
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(selectedTools[index].link)}&name=${encodeURIComponent(selectedTools[index].name)}`}
                         alt={selectedTools[index].name} 
                         className="max-w-full max-h-full object-contain" 
                       />
@@ -255,7 +255,7 @@ const Compare = () => {
                   <div>
                     <div className="w-16 h-16 rounded-2xl bg-slate-900 p-3 mx-auto border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden mb-4">
                       <img 
-                        src={`/api/utils/proxy-logo?domain=${getHostname(selectedTools[0].link)}&name=${encodeURIComponent(selectedTools[0].name)}`}
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(selectedTools[0].link)}&name=${encodeURIComponent(selectedTools[0].name)}`}
                         alt={selectedTools[0].name} 
                         className="max-w-full max-h-full object-contain" 
                       />
@@ -289,7 +289,7 @@ const Compare = () => {
                   <div>
                     <div className="w-16 h-16 rounded-2xl bg-slate-900 p-3 mx-auto border border-white/10 shadow-2xl flex items-center justify-center overflow-hidden mb-4">
                       <img 
-                        src={`/api/utils/proxy-logo?domain=${getHostname(selectedTools[1].link)}&name=${encodeURIComponent(selectedTools[1].name)}`}
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(selectedTools[1].link)}&name=${encodeURIComponent(selectedTools[1].name)}`}
                         alt={selectedTools[1].name} 
                         className="max-w-full max-h-full object-contain" 
                       />

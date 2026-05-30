@@ -77,7 +77,7 @@ const COLOR = {
 const getLogoSrc = (tool) => {
   try {
     const domain = new URL(tool.link).hostname;
-    return `/api/utils/proxy-logo?domain=${domain}&name=${encodeURIComponent(tool.name)}`;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${domain}&name=${encodeURIComponent(tool.name)}`;
   } catch {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`;
   }

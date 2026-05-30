@@ -490,7 +490,7 @@ const ToolDetails = () => {
               className="w-32 h-32 md:w-40 md:h-40 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-6 md:p-8 shadow-2xl flex items-center justify-center overflow-hidden shrink-0 group hover:border-indigo-500/50 transition-colors"
             >
               <img 
-                src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                 alt={tool.name} 
                 className="max-w-full max-h-full object-contain filter drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" 
               />

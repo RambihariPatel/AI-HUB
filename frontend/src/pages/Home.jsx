@@ -209,7 +209,7 @@ const Home = () => {
                             >
                               <div className="w-12 h-12 rounded-xl bg-slate-800 p-2 mr-4 border border-white/5 group-hover/tool:scale-110 transition-transform">
                                 <img 
-                                  src={`/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
                                   alt={tool.name} 
                                   className="w-full h-full object-contain" 
                                 />

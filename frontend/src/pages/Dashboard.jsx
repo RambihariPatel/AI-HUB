@@ -367,7 +367,7 @@ const Dashboard = () => {
                       <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 p-2.5 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                           <img 
-                            src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                             alt={tool.name} 
                             className="max-w-full max-h-full object-contain filter drop-shadow-md" 
                           />
@@ -454,7 +454,7 @@ const Dashboard = () => {
                       <div className="flex items-center space-x-3.5">
                         <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 p-2 shadow-inner flex items-center justify-center overflow-hidden">
                           <img 
-                            src={`/api/utils/proxy-logo?domain=${getHostname(inspectTool.link)}&name=${encodeURIComponent(inspectTool.name)}`}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(inspectTool.link)}&name=${encodeURIComponent(inspectTool.name)}`}
                             alt={inspectTool.name} 
                             className="max-w-full max-h-full object-contain"
                           />
@@ -785,7 +785,7 @@ const Dashboard = () => {
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-3 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                           <img 
-                            src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                             alt={tool.name} 
                             className="max-w-full max-h-full object-contain" 
                           />
@@ -1028,7 +1028,7 @@ const Dashboard = () => {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-slate-800 p-2 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                             <img 
-                              src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                              src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                               alt={tool.name} 
                               className="max-w-full max-h-full object-contain" 
                             />
