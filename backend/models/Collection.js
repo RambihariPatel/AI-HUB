@@ -18,6 +18,10 @@ const collectionSchema = new mongoose.Schema(
         ref: 'Tool',
       },
     ],
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

@@ -25,6 +25,7 @@ const toolSchema = new mongoose.Schema(
         'Education',
         'Automation',
         'Design',
+        'Logo Maker',
         'Finance',
         'Legal',
         'HR',

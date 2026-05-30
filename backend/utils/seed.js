@@ -25,7 +25,8 @@ const createTool = (data, index) => {
     'Video': 'Motion-V1',
     'Audio': 'Voice-Sync',
     'Data': 'Analyst-L1',
-    'Productivity': 'Task-Core'
+    'Productivity': 'Task-Core',
+    'Logo Maker': 'Vector-Gen'
   };
 
   const modelName = data.modelInfo?.modelName || modelNames[data.category] || 'Neural-Core';
@@ -50,7 +51,13 @@ const createTool = (data, index) => {
     pros: data.pros || ['Easy to use', 'Fast results'],
     cons: data.cons || ['Requires internet', 'Learning curve'],
     clicks: data.clicks || 0,
-    monthlyUsers: data.monthlyUsers || `${(Math.random() * 50 + 10).toFixed(1)}k`,
+    monthlyUsers: data.monthlyUsers || (
+      data.popularity === 'High' 
+        ? `${(Math.random() * 150 + 50).toFixed(0)}M+` 
+        : data.popularity === 'Medium' 
+        ? `${(Math.random() * 800 + 100).toFixed(0)}k+` 
+        : `${(Math.random() * 80 + 10).toFixed(0)}k+`
+    ),
     isApproved: true
   };
 };
@@ -178,7 +185,6 @@ const toolsData = [
 
   // --- DESIGN ---
   { name: 'Uizard', tagline: 'AI for UI design.', category: 'Design', descriptionShort: 'Turn wireframes into designs.', pricing: 'Freemium', rating: 4.7, popularity: 'High', image: 'https://uizard.io/favicon.ico', link: 'https://uizard.io' },
-  { name: 'Looka', tagline: 'AI logo maker.', category: 'Design', descriptionShort: 'Generate professional brand kits.', pricing: 'Paid', rating: 4.6, popularity: 'High', image: 'https://looka.com/favicon.ico', link: 'https://looka.com' },
   { name: 'Vectary', tagline: 'AI 3D design.', category: 'Design', descriptionShort: 'Build 3D assets with AI.', pricing: 'Freemium', rating: 4.5, popularity: 'Medium', image: 'https://www.vectary.com/favicon.ico', link: 'https://www.vectary.com' },
   { name: 'Galileo AI', tagline: 'Interface generation.', category: 'Design', descriptionShort: 'Text-to-UI in seconds.', pricing: 'Paid', rating: 4.8, popularity: 'Medium', image: 'https://www.usegalileo.ai/favicon.ico', link: 'https://www.usegalileo.ai' },
   { name: 'Framer AI', tagline: 'Build sites with AI.', category: 'Design', descriptionShort: 'Zero-code professional websites.', pricing: 'Freemium', rating: 4.9, popularity: 'High', image: 'https://www.framer.com/favicon.ico', link: 'https://framer.com' },
@@ -187,6 +193,15 @@ const toolsData = [
   { name: 'Flair.ai', tagline: 'Product photo AI.', category: 'Design', descriptionShort: 'Stunning visuals for brands.', pricing: 'Freemium', rating: 4.7, popularity: 'Medium', image: 'https://flair.ai/favicon.ico', link: 'https://flair.ai' },
   { name: 'Spline AI', tagline: '3D modeling for all.', category: 'Design', descriptionShort: 'Generate 3D scenes with text.', pricing: 'Freemium', rating: 4.6, popularity: 'High', image: 'https://spline.design/favicon.ico', link: 'https://spline.design' },
   { name: 'Mokker AI', tagline: 'Background removal pro.', category: 'Design', descriptionShort: 'E-commerce photo enhancement.', pricing: 'Freemium', rating: 4.5, popularity: 'Low', image: 'https://mokker.ai/favicon.ico', link: 'https://mokker.ai' },
+
+  // --- LOGO ---
+  { name: 'Looka', tagline: 'AI logo maker and branding generator.', category: 'Logo Maker', descriptionShort: 'Generate professional logos and brand kits in minutes.', pricing: 'Paid', rating: 4.6, popularity: 'High', image: 'https://looka.com/favicon.ico', link: 'https://looka.com' },
+  { name: 'Hatchful', tagline: 'Free logo creator by Shopify.', category: 'Logo Maker', descriptionShort: 'Create stunning logos in seconds with templates.', pricing: 'Free', rating: 4.5, popularity: 'High', image: 'https://hatchful.shopify.com/favicon.ico', link: 'https://hatchful.shopify.com' },
+  { name: 'Namecheap Logo Maker', tagline: '100% free logo builder with SVG vector downloads.', category: 'Logo Maker', descriptionShort: 'Create custom logo designs and download high-quality assets completely free.', pricing: 'Free', rating: 4.8, popularity: 'High', image: 'https://www.namecheap.com/assets/img/nc-logo/nc-logo-share.png', link: 'https://www.namecheap.com/logo-maker/' },
+  { name: 'Canva Logo Maker', tagline: 'Design professional logos for free.', category: 'Logo Maker', descriptionShort: 'Beautiful pre-made templates with an easy drag-and-drop editor for fast brand logos.', pricing: 'Free', rating: 4.9, popularity: 'High', image: 'https://www.canva.com/favicon.ico', link: 'https://www.canva.com/create/logos/' },
+  { name: 'Brandmark', tagline: 'AI-powered logo design tool.', category: 'Logo Maker', descriptionShort: 'Create a unique logo, business card and social graphics.', pricing: 'Freemium', rating: 4.7, popularity: 'Medium', image: 'https://brandmark.io/favicon.ico', link: 'https://brandmark.io' },
+  { name: 'LogoAI', tagline: 'Smart logo maker & brand automation.', category: 'Logo Maker', descriptionShort: 'Generate logos, mockups, and corporate brand identities.', pricing: 'Freemium', rating: 4.8, popularity: 'High', image: 'https://www.logoai.com/favicon.ico', link: 'https://www.logoai.com' },
+  { name: 'Logomaster.ai', tagline: 'Professional AI logo builder.', category: 'Logo Maker', descriptionShort: 'Beautiful vector logos generated in seconds for startups.', pricing: 'Paid', rating: 4.4, popularity: 'Medium', image: 'https://logomaster.ai/favicon.ico', link: 'https://logomaster.ai' },
 
   // --- FINANCE ---
   { name: 'Kavout', tagline: 'AI stock analysis.', category: 'Finance', descriptionShort: 'Predictive equity scores.', pricing: 'Paid', rating: 4.5, popularity: 'Medium', image: 'https://www.kavout.com/favicon.ico', link: 'https://www.kavout.com' },

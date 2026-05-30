@@ -36,7 +36,7 @@ const Home = () => {
   const categories = [
     'Writing', 'Coding', 'Image', 'Video', 'Audio', 
     'Data', 'Productivity', 'Marketing', 'Education', 'Automation',
-    'Design', 'Finance', 'Legal', 'HR', 'Cybersecurity'
+    'Design', 'Logo Maker', 'Finance', 'Legal', 'HR', 'Cybersecurity'
   ];
 
   useEffect(() => {

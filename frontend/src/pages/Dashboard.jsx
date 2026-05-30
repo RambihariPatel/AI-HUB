@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShieldCheck, LayoutDashboard, Heart, History, Sparkles, 
   ExternalLink, Check, Trash2, ArrowLeft, Hourglass, Bookmark, Lock, Loader2, ArrowRight, Rocket,
-  Folder, Plus
+  Folder, Plus, X, Cpu, Layers, ThumbsUp, ThumbsDown, Globe, Share2
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
@@ -17,6 +17,20 @@ import SkeletonCard from '../components/SkeletonCard';
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  const getHostname = (urlStr) => {
+    try {
+      if (!urlStr) return '';
+      let formattedUrl = urlStr;
+      if (!/^https?:\/\//i.test(urlStr)) {
+        formattedUrl = `https://${urlStr}`;
+      }
+      return new URL(formattedUrl).hostname;
+    } catch (e) {
+      return '';
+    }
+  };
+
   const [activeTab, setActiveTab] = useState('submissions'); // submissions, favorites, history for user; moderation for admin
   const [loading, setLoading] = useState(true);
   
@@ -31,6 +45,9 @@ const Dashboard = () => {
   
   // States for admin data
   const [pendingTools, setPendingTools] = useState([]);
+  const [inspectTool, setInspectTool] = useState(null);
+  const [isInspectOpen, setIsInspectOpen] = useState(false);
+  const [activeInspectTab, setActiveInspectTab] = useState('overview'); // overview, specs, features, feedback
 
   useEffect(() => {
     if (!user) return;
@@ -171,6 +188,29 @@ const Dashboard = () => {
       toast.error('Failed to delete folder.');
     }
   };
+ 
+  const handleTogglePublic = async (folderId) => {
+    try {
+      const { data } = await axios.put(`http://localhost:5000/api/collections/${folderId}/toggle-public`, {}, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      setCollections(prev => prev.map(col => col._id === folderId ? { ...col, isPublic: data.isPublic } : col));
+      toast.success(data.isPublic ? 'Folder is now public and shareable! 🤝' : 'Folder is now private.');
+    } catch (error) {
+      toast.error('Failed to update folder visibility.');
+    }
+  };
+
+  const handleCopyShareLink = (folderId, folderName) => {
+    const shareUrl = `${window.location.origin}/shared-folder/${folderId}`;
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        toast.success(`Share link for "${folderName}" copied to clipboard! 📂🔗`);
+      })
+      .catch(() => {
+        toast.error('Failed to copy share link.');
+      });
+  };
 
   const handleApprove = async (id) => {
     try {
@@ -179,9 +219,17 @@ const Dashboard = () => {
       });
       toast.success('Tool approved and set live! 🚀');
       setPendingTools(prev => prev.filter(tool => tool._id !== id));
+      setIsInspectOpen(false);
+      setInspectTool(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Approval failed.');
     }
+  };
+
+  const handleApproveFromDrawer = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleApprove(id);
   };
 
   const handleReject = async (id) => {
@@ -192,9 +240,17 @@ const Dashboard = () => {
       });
       toast.success('Tool submission rejected and deleted.');
       setPendingTools(prev => prev.filter(tool => tool._id !== id));
+      setIsInspectOpen(false);
+      setInspectTool(null);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Rejection failed.');
     }
+  };
+
+  const handleRejectFromDrawer = async (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleReject(id);
   };
 
   if (!user) {
@@ -286,8 +342,7 @@ const Dashboard = () => {
                 <span>Pending Moderation ({pendingTools.length})</span>
               </button>
             </div>
-
-            <div className="space-y-6">
+            <div className="space-y-4">
               <AnimatePresence mode="popLayout">
                 {pendingTools.length === 0 ? (
                   <motion.div 
@@ -307,70 +362,61 @@ const Dashboard = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                      className="glass-card-premium rounded-[2rem] p-6 md:p-8 border border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+                      className="glass-card-premium rounded-3xl p-5 border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-5 hover:border-indigo-500/20 transition-all duration-300"
                     >
-                      <div className="flex-1 space-y-4">
-                        <div className="flex items-start gap-4">
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-3 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
-                            <img 
-                              src={`/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
-                              alt={tool.name} 
-                              className="max-w-full max-h-full object-contain" 
-                            />
-                          </div>
-                          <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-xl font-black text-white">{tool.name}</h3>
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-white/5">
-                                {tool.category}
-                              </span>
-                              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                                {tool.pricing}
-                              </span>
-                            </div>
-                            <p className="text-indigo-300 font-bold text-sm mt-1">{tool.tagline}</p>
-                          </div>
+                      <div className="flex items-center gap-4 w-full sm:w-auto">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 p-2.5 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
+                          <img 
+                            src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                            alt={tool.name} 
+                            className="max-w-full max-h-full object-contain filter drop-shadow-md" 
+                          />
                         </div>
-
-                        <div className="bg-slate-950/40 rounded-xl p-4 border border-white/5 space-y-2">
-                          <p className="text-sm text-slate-300 leading-relaxed"><span className="text-slate-500 font-bold uppercase text-xs tracking-wider block mb-1">Short Description</span>{tool.descriptionShort}</p>
-                          <p className="text-sm text-slate-400 leading-relaxed"><span className="text-slate-500 font-bold uppercase text-xs tracking-wider block mb-1">Detailed Overview</span>{tool.descriptionLong}</p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-4 text-xs">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-lg font-black text-white truncate">{tool.name}</h3>
+                            <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-slate-800 text-slate-400 border border-white/5">
+                              {tool.category}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-400 border border-indigo-500/10">
+                              {tool.pricing}
+                            </span>
+                          </div>
+                          <p className="text-indigo-300 font-bold text-xs mt-1 truncate">{tool.tagline}</p>
                           {tool.submittedBy && (
-                            <div className="text-slate-500 font-medium">
-                              Developer:{' '}
-                              <span className="text-slate-300 font-bold">
-                                {tool.submittedBy.name} ({tool.submittedBy.email})
-                              </span>
-                            </div>
+                            <p className="text-[10px] text-slate-500 mt-1 font-medium">
+                              By: <span className="text-slate-400 font-bold">{tool.submittedBy.name}</span>
+                            </p>
                           )}
-                          <div className="text-slate-500 font-medium flex items-center gap-1">
-                            <span>Link:</span>
-                            <a href={tool.link} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline flex items-center">
-                              {new URL(tool.link).hostname}
-                              <ExternalLink className="w-3 h-3 ml-1" />
-                            </a>
-                          </div>
                         </div>
                       </div>
 
                       {/* Action buttons */}
-                      <div className="flex md:flex-col gap-3 w-full md:w-auto shrink-0 border-t md:border-t-0 pt-4 md:pt-0 border-white/5">
+                      <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-4 sm:pt-0 border-white/5">
+                        <button 
+                          onClick={() => {
+                            setInspectTool(tool);
+                            setActiveInspectTab('overview');
+                            setIsInspectOpen(true);
+                          }}
+                          className="flex-1 sm:flex-none px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 transition-all active:scale-95 cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Inspect Tool</span>
+                        </button>
                         <button 
                           onClick={() => handleApprove(tool._id)}
-                          className="flex-1 md:flex-none px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all active:scale-95"
+                          className="p-2.5 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/10 hover:border-transparent rounded-xl font-bold transition-all active:scale-95 cursor-pointer"
+                          title="Instant Approve"
                         >
-                          <Check className="w-4 h-4" />
-                          <span>Approve</span>
+                          <Check className="w-4 h-4 stroke-[3]" />
                         </button>
                         <button 
                           onClick={() => handleReject(tool._id)}
-                          className="flex-1 md:flex-none px-6 py-3 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl font-bold border border-red-500/10 hover:border-transparent flex items-center justify-center gap-2 transition-all active:scale-95"
+                          className="p-2.5 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/10 hover:border-transparent rounded-xl font-bold transition-all active:scale-95 cursor-pointer"
+                          title="Instant Reject"
                         >
                           <Trash2 className="w-4 h-4" />
-                          <span>Reject</span>
                         </button>
                       </div>
                     </motion.div>
@@ -378,6 +424,304 @@ const Dashboard = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Slide-out Inspection Drawer */}
+            <AnimatePresence>
+              {isInspectOpen && inspectTool && (
+                <>
+                  {/* Backdrop Overlay */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => {
+                      setIsInspectOpen(false);
+                      setInspectTool(null);
+                    }}
+                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 pointer-events-auto"
+                  />
+
+                  {/* Drawer Panel */}
+                  <motion.div
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                    className="fixed right-0 top-0 bottom-0 w-[550px] max-w-full bg-slate-950/98 border-l border-white/10 shadow-[0_0_50px_-12px_rgba(0,0,0,0.8)] z-50 flex flex-col overflow-hidden pointer-events-auto"
+                  >
+                    {/* Drawer Header */}
+                    <div className="p-6 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-slate-950 to-indigo-950/40">
+                      <div className="flex items-center space-x-3.5">
+                        <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 p-2 shadow-inner flex items-center justify-center overflow-hidden">
+                          <img 
+                            src={`/api/utils/proxy-logo?domain=${getHostname(inspectTool.link)}&name=${encodeURIComponent(inspectTool.name)}`}
+                            alt={inspectTool.name} 
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black text-white">{inspectTool.name}</h3>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Inspect Submission</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsInspectOpen(false);
+                          setInspectTool(null);
+                        }}
+                        className="p-2 bg-slate-900/50 hover:bg-slate-800 border border-white/5 rounded-xl text-slate-400 hover:text-white transition-all active:scale-90"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Drawer Tab Headers */}
+                    <div className="flex border-b border-white/5 px-6 bg-slate-950/50 overflow-x-auto no-scrollbar flex-shrink-0">
+                      {[
+                        { id: 'overview', label: 'Overview', icon: <Layers className="w-3.5 h-3.5" /> },
+                        { id: 'specs', label: 'Model Specs', icon: <Cpu className="w-3.5 h-3.5" /> },
+                        { id: 'features', label: 'Features', icon: <Sparkles className="w-3.5 h-3.5" /> },
+                        { id: 'feedback', label: 'Pros & Cons', icon: <ThumbsUp className="w-3.5 h-3.5" /> },
+                      ].map(tab => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveInspectTab(tab.id)}
+                          className={`flex items-center space-x-2 py-3 px-4 text-xs font-bold transition-all border-b-2 whitespace-nowrap -mb-[1px] ${
+                            activeInspectTab === tab.id
+                              ? 'border-indigo-500 text-white bg-indigo-500/5'
+                              : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5'
+                          }`}
+                        >
+                          {tab.icon}
+                          <span>{tab.label}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Drawer Content Body */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                      {activeInspectTab === 'overview' && (
+                        <div className="space-y-5">
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Category & Pricing</span>
+                            <div className="flex items-center gap-2">
+                              <span className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 border border-white/5 text-slate-300">
+                                {inspectTool.category}
+                              </span>
+                              <span className="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                                {inspectTool.pricing}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Tagline</span>
+                            <p className="text-sm font-bold text-indigo-300 leading-relaxed bg-slate-900/40 p-3 rounded-xl border border-white/5">
+                              {inspectTool.tagline}
+                            </p>
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Short Description</span>
+                            <p className="text-xs text-slate-300 leading-relaxed bg-slate-900/40 p-4 rounded-xl border border-white/5">
+                              {inspectTool.descriptionShort}
+                            </p>
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Detailed Overview</span>
+                            <p className="text-xs text-slate-400 leading-relaxed bg-slate-900/40 p-4 rounded-xl border border-white/5 max-h-48 overflow-y-auto custom-scrollbar whitespace-pre-line">
+                              {inspectTool.descriptionLong}
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 pt-2">
+                            <div>
+                              <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Submitted By</span>
+                              <p className="text-xs font-bold text-white truncate">{inspectTool.submittedBy?.name || 'Unknown'}</p>
+                              <p className="text-[10px] text-slate-500 truncate">{inspectTool.submittedBy?.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">Launch Website</span>
+                              <a
+                                href={inspectTool.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:underline mt-1"
+                              >
+                                <span>{getHostname(inspectTool.link)}</span>
+                                <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeInspectTab === 'specs' && (
+                        <div className="space-y-5">
+                          {inspectTool.modelInfo ? (
+                            <>
+                              <div className="grid grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-2xl border border-white/5">
+                                <div>
+                                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-1">AI Model Name</span>
+                                  <p className="text-sm font-black text-white">{inspectTool.modelInfo.modelName || 'Standard Model'}</p>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-1">Model Type</span>
+                                  <p className="text-sm font-black text-white">{inspectTool.modelInfo.modelType || 'Proprietary'}</p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-2xl border border-white/5">
+                                <div>
+                                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-1">Free Tier Available?</span>
+                                  <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider mt-1 ${
+                                    inspectTool.modelInfo.freeAvailable 
+                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                  }`}>
+                                    {inspectTool.modelInfo.freeAvailable ? 'Yes' : 'No'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-1">Paid Tier Available?</span>
+                                  <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider mt-1 ${
+                                    inspectTool.modelInfo.paidAvailable 
+                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                      : 'bg-slate-800 text-slate-500 border border-white/5'
+                                  }`}>
+                                    {inspectTool.modelInfo.paidAvailable ? 'Yes' : 'No'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-2xl border border-white/5">
+                                <div>
+                                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-1">Free Credits</span>
+                                  <p className="text-xs font-bold text-indigo-300 mt-1">{inspectTool.modelInfo.credits || 'N/A'}</p>
+                                </div>
+                                <div>
+                                  <span className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-1">API Access Available?</span>
+                                  <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider mt-1 ${
+                                    inspectTool.modelInfo.apiAccess 
+                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                  }`}>
+                                    {inspectTool.modelInfo.apiAccess ? 'Yes' : 'No'}
+                                  </span>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-center py-10 bg-slate-900/10 rounded-2xl border border-white/5">
+                              <p className="text-slate-500 text-xs">No technical specifications provided for this tool.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {activeInspectTab === 'features' && (
+                        <div className="space-y-5">
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-3">Key Features & Capabilities</span>
+                            {inspectTool.features && inspectTool.features.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {inspectTool.features.map((feature, i) => (
+                                  <span key={i} className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-indigo-300 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                    {feature}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-slate-500 text-xs bg-slate-900/40 p-4 rounded-xl border border-white/5">No key features listed.</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-3">Ideal Use Cases</span>
+                            {inspectTool.useCases && inspectTool.useCases.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {inspectTool.useCases.map((useCase, i) => (
+                                  <span key={i} className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-emerald-300 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    {useCase}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-slate-500 text-xs bg-slate-900/40 p-4 rounded-xl border border-white/5">No specific use cases listed.</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {activeInspectTab === 'feedback' && (
+                        <div className="space-y-5">
+                          <div className="grid grid-cols-1 gap-4">
+                            <div>
+                              <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-3 flex items-center gap-2">
+                                <ThumbsUp className="w-4 h-4 text-emerald-400" />
+                                <span>Advantages (Pros)</span>
+                              </span>
+                              {inspectTool.pros && inspectTool.pros.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {inspectTool.pros.map((pro, i) => (
+                                    <li key={i} className="text-xs font-medium px-4 py-2.5 rounded-xl bg-emerald-950/15 border border-emerald-500/10 text-emerald-300 flex items-start gap-2.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1.5" />
+                                      <span>{pro}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-slate-500 text-xs bg-slate-900/40 p-4 rounded-xl border border-white/5">No advantages specified.</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-3 flex items-center gap-2">
+                                <ThumbsDown className="w-4 h-4 text-rose-400" />
+                                <span>Limitations (Cons)</span>
+                              </span>
+                              {inspectTool.cons && inspectTool.cons.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {inspectTool.cons.map((con, i) => (
+                                    <li key={i} className="text-xs font-medium px-4 py-2.5 rounded-xl bg-rose-950/15 border border-rose-500/10 text-rose-300 flex items-start gap-2.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
+                                      <span>{con}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-slate-500 text-xs bg-slate-900/40 p-4 rounded-xl border border-white/5">No limitations specified.</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Drawer Footer Actions */}
+                    <div className="p-6 border-t border-white/5 flex gap-4 bg-slate-950 flex-shrink-0">
+                      <button
+                        onClick={(e) => handleApproveFromDrawer(e, inspectTool._id)}
+                        className="flex-1 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>Approve & Set Live</span>
+                      </button>
+                      <button
+                        onClick={(e) => handleRejectFromDrawer(e, inspectTool._id)}
+                        className="px-6 py-3.5 bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white rounded-xl font-bold border border-red-500/10 hover:border-transparent flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span>Reject Submission</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </div>
         ) : (
           // ================= USER DASHBOARD =================
@@ -441,7 +785,7 @@ const Dashboard = () => {
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-3 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                           <img 
-                            src={`/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                            src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                             alt={tool.name} 
                             className="max-w-full max-h-full object-contain" 
                           />
@@ -568,7 +912,16 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <h4 className="font-black text-white text-sm group-hover:text-indigo-400 transition-colors truncate pr-4">{col.name}</h4>
-                        <p className="text-[10px] text-slate-500 mt-0.5">Custom folder</p>
+                        <div className="flex items-center justify-between mt-1.5 relative z-20">
+                          <p className="text-[10px] text-slate-500">Custom folder</p>
+                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md ${
+                            col.isPublic 
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]' 
+                              : 'bg-slate-800/80 text-slate-500 border border-white/5'
+                          }`}>
+                            {col.isPublic ? 'Public' : 'Private'}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -576,13 +929,46 @@ const Dashboard = () => {
 
                 {/* Expanded Folder Header & Grid */}
                 <div className="pt-6 border-t border-white/5 space-y-6">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                    <h3 className="text-xl font-black text-white">
-                      {expandedFolderId === 'favorites' 
-                        ? 'General Favorites' 
-                        : collections.find(c => c._id === expandedFolderId)?.name || 'Folder Tools'}
-                    </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
+                      <h3 className="text-xl font-black text-white">
+                        {expandedFolderId === 'favorites' 
+                          ? 'General Favorites' 
+                          : collections.find(c => c._id === expandedFolderId)?.name || 'Folder Tools'}
+                      </h3>
+                    </div>
+                    
+                    {expandedFolderId !== 'favorites' && (() => {
+                      const activeFolder = collections.find(c => c._id === expandedFolderId);
+                      if (!activeFolder) return null;
+                      return (
+                        <div className="flex items-center gap-3 self-end sm:self-auto">
+                          <button
+                            onClick={() => handleTogglePublic(activeFolder._id)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+                              activeFolder.isPublic
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)]'
+                                : 'bg-slate-900 border-white/5 text-slate-400 hover:text-white'
+                            }`}
+                            title="Toggle Visibility"
+                          >
+                            {activeFolder.isPublic ? <Globe className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                            <span>{activeFolder.isPublic ? 'Public' : 'Private'}</span>
+                          </button>
+                          
+                          {activeFolder.isPublic && (
+                            <button
+                              onClick={() => handleCopyShareLink(activeFolder._id, activeFolder.name)}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-lg shadow-indigo-500/10"
+                            >
+                              <Share2 className="w-3.5 h-3.5" />
+                              <span>Share Folder</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Tools Grid */}
@@ -642,7 +1028,7 @@ const Dashboard = () => {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-slate-800 p-2 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                             <img 
-                              src={`/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                              src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                               alt={tool.name} 
                               className="max-w-full max-h-full object-contain" 
                             />

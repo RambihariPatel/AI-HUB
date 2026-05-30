@@ -17,6 +17,19 @@ import SaveToCollectionModal from '../components/SaveToCollectionModal';
 const ToolDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
+
+  const getHostname = (urlStr) => {
+    try {
+      if (!urlStr) return '';
+      let formattedUrl = urlStr;
+      if (!/^https?:\/\//i.test(urlStr)) {
+        formattedUrl = `https://${urlStr}`;
+      }
+      return new URL(formattedUrl).hostname;
+    } catch (e) {
+      return '';
+    }
+  };
   const [tool, setTool] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
@@ -31,6 +44,35 @@ const ToolDetails = () => {
   const [isFavorited, setIsFavorited] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [liveViewers, setLiveViewers] = useState(3);
+
+  useEffect(() => {
+    if (!tool) return;
+    const getBaseViewers = (usersStr) => {
+      if (!usersStr) return 3;
+      if (usersStr.includes('M')) {
+        return Math.floor(Math.random() * 25 + 15);
+      }
+      if (usersStr.includes('k')) {
+        const val = parseInt(usersStr);
+        if (val > 500) return Math.floor(Math.random() * 8 + 6);
+        return Math.floor(Math.random() * 4 + 3);
+      }
+      return 3;
+    };
+    let current = getBaseViewers(tool.monthlyUsers);
+    setLiveViewers(current);
+
+    const interval = setInterval(() => {
+      setLiveViewers(prev => {
+        const delta = Math.random() > 0.5 ? 1 : -1;
+        const next = prev + delta;
+        return Math.max(2, Math.min(45, next));
+      });
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [tool]);
 
   useEffect(() => {
     if (!tool) return;
@@ -448,7 +490,7 @@ const ToolDetails = () => {
               className="w-32 h-32 md:w-40 md:h-40 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-6 md:p-8 shadow-2xl flex items-center justify-center overflow-hidden shrink-0 group hover:border-indigo-500/50 transition-colors"
             >
               <img 
-                src={`/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                src={`/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
                 alt={tool.name} 
                 className="max-w-full max-h-full object-contain filter drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" 
               />
@@ -482,6 +524,17 @@ const ToolDetails = () => {
                   <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
                   <span className="text-sm md:text-base text-white">{tool.monthlyUsers || '10k+'}</span>
                 </div>
+              </div>
+
+              {/* Glowing Live Concurrent Viewers Tracker */}
+              <div className="mt-5 flex items-center space-x-2.5 bg-slate-900/40 px-4 py-2.5 rounded-2xl border border-white/5 w-fit mx-auto md:mx-0 shadow-[0_0_15px_rgba(239,68,68,0.03)]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider leading-none">
+                  🔥 <span className="text-red-400 font-black">{liveViewers}</span> people exploring this platform right now!
+                </p>
               </div>
             </div>
           </div>

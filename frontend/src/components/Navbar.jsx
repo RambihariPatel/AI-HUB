@@ -94,7 +94,7 @@ const Navbar = () => {
           {/* Navigation Links (Desktop) */}
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</Link>
-            <Link to="/category/All" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Categories</Link>
+            <Link to="/category/Writing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Categories</Link>
             <Link to="/toolkits" className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5">
               <Package2 className="w-3.5 h-3.5 text-purple-400" />
               <span>Toolkits</span>
@@ -179,6 +179,7 @@ const Navbar = () => {
         <div className="md:hidden bg-slate-950 border-b border-white/5 px-4 pt-2 pb-6 space-y-4">
           <div className="flex flex-col space-y-4 pt-4">
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-slate-300">Directory</Link>
+            <Link to="/category/Writing" onClick={() => setIsMenuOpen(false)} className="text-slate-300">Categories</Link>
             <Link to="/toolkits" onClick={() => setIsMenuOpen(false)} className="text-slate-300 flex items-center gap-2">
               <Package2 className="w-4 h-4 text-purple-400" />
               <span>Toolkits</span>

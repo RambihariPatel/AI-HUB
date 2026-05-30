@@ -2,11 +2,11 @@ import React from 'react';
 import { 
   PenTool, Code, Image as ImageIcon, Video, Music, 
   Database, Zap, BarChart3, GraduationCap, Bot,
-  Palette, DollarSign, Scale, Users, ShieldCheck
+  Palette, DollarSign, Scale, Users, ShieldCheck,
+  Crown
 } from 'lucide-react';
 
 const categories = [
-  { name: 'All', icon: null },
   { name: 'Writing', icon: <PenTool className="w-4 h-4" /> },
   { name: 'Coding', icon: <Code className="w-4 h-4" /> },
   { name: 'Image', icon: <ImageIcon className="w-4 h-4" /> },
@@ -18,6 +18,7 @@ const categories = [
   { name: 'Education', icon: <GraduationCap className="w-4 h-4" /> },
   { name: 'Automation', icon: <Bot className="w-4 h-4" /> },
   { name: 'Design', icon: <Palette className="w-4 h-4" /> },
+  { name: 'Logo Maker', icon: <Crown className="w-4 h-4" /> },
   { name: 'Finance', icon: <DollarSign className="w-4 h-4" /> },
   { name: 'Legal', icon: <Scale className="w-4 h-4" /> },
   { name: 'HR', icon: <Users className="w-4 h-4" /> },

@@ -5,12 +5,17 @@ import {
   addToolToCollection,
   removeToolFromCollection,
   deleteCollection,
+  toggleCollectionPublic,
+  getSharedCollection,
 } from '../controllers/collectionController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.use(protect); // Secure all collection routes
+// Public shared collection retrieval (Accessible without authentication)
+router.get('/shared/:id', getSharedCollection);
+
+router.use(protect); // Secure subsequent collection routes
 
 router.route('/')
   .get(getCollections)
@@ -18,6 +23,8 @@ router.route('/')
 
 router.route('/:id')
   .delete(deleteCollection);
+
+router.put('/:id/toggle-public', toggleCollectionPublic);
 
 router.route('/:id/tools')
   .post(addToolToCollection);

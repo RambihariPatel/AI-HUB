@@ -10,6 +10,7 @@ import ToolDetails from './pages/ToolDetails';
 import SubmitTool from './pages/SubmitTool';
 import Dashboard from './pages/Dashboard';
 import Toolkits from './pages/Toolkits';
+import SharedFolder from './pages/SharedFolder';
 import AIChatbot from './components/AIChatbot';
 import ToolModal from './components/ToolModal';
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="/submit-tool" element={<SubmitTool />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<Dashboard />} />
+        <Route path="/shared-folder/:id" element={<SharedFolder />} />
       </Routes>
 
       {/* Global Floating AI Chatbot */}

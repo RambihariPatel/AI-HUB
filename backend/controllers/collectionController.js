@@ -103,3 +103,50 @@ export const deleteCollection = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Toggle public visibility of a collection
+// @route   PUT /api/collections/:id/toggle-public
+// @access  Private
+export const toggleCollectionPublic = async (req, res) => {
+  try {
+    const collection = await Collection.findOne({ _id: req.params.id, user: req.user._id });
+
+    if (!collection) {
+      return res.status(404).json({ message: 'Collection not found' });
+    }
+
+    collection.isPublic = !collection.isPublic;
+    await collection.save();
+
+    res.json(collection);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get a shared collection by ID
+// @route   GET /api/collections/shared/:id
+// @access  Public (Optional auth)
+export const getSharedCollection = async (req, res) => {
+  try {
+    const collection = await Collection.findById(req.params.id)
+      .populate({
+        path: 'tools',
+        match: { isApproved: true }
+      })
+      .populate('user', 'name');
+
+    if (!collection) {
+      return res.status(404).json({ message: 'Collection not found' });
+    }
+
+    // If it's private, check if the requester is the owner
+    if (!collection.isPublic) {
+      return res.status(403).json({ message: 'This collection is private.' });
+    }
+
+    res.json(collection);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

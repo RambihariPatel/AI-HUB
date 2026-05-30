@@ -7,11 +7,8 @@ import Tool from './models/Tool.js';
 
 await mongoose.connect(process.env.MONGO_URI);
 
-const existing = await Toolkit.countDocuments({ isOfficial: true });
-if (existing > 0) {
-  console.log(`Already have ${existing} toolkits. Skipping seed.`);
-  process.exit(0);
-}
+await Toolkit.deleteMany({ isOfficial: true });
+console.log('Cleared existing official toolkits...');
 
 const SEEDS = [
   {
@@ -60,7 +57,7 @@ const SEEDS = [
     emoji: '🎨',
     color: 'purple',
     tags: ['Design', 'Art'],
-    categories: ['Design', 'Image', 'Video'],
+    categories: ['Design', 'Image', 'Video', 'Logo Maker'],
   },
 ];
 

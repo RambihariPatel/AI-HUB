@@ -14,7 +14,7 @@ import { useAuth } from '../context/AuthContext';
 const CATEGORIES = [
   'Writing', 'Coding', 'Image', 'Video', 'Audio', 
   'Data', 'Productivity', 'Marketing', 'Education', 
-  'Automation', 'Design', 'Finance', 'Legal', 'HR', 'Cybersecurity'
+  'Automation', 'Design', 'Logo Maker', 'Finance', 'Legal', 'HR', 'Cybersecurity'
 ];
 
 const PRICING_OPTIONS = ['Free', 'Paid', 'Freemium'];

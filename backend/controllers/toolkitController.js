@@ -148,7 +148,7 @@ export const seedToolkits = async (req, res) => {
         emoji: '🎨',
         color: 'purple',
         tags: ['Design', 'Art', 'Brand'],
-        categories: ['Design', 'Image', 'Video'],
+        categories: ['Design', 'Image', 'Video', 'Logo Maker'],
       },
     ];
 

@@ -212,7 +212,7 @@ const ToolCard = ({ tool }) => {
       <Link to={`/tool/${tool._id}`} className="p-6 flex flex-col flex-1 cursor-pointer">
         
         {/* Top Header Row */}
-        <div className="flex items-start justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-5 gap-3">
           <div className="flex items-center space-x-3.5">
             {/* Logo Container */}
             <div className="relative shrink-0">
@@ -247,7 +247,7 @@ const ToolCard = ({ tool }) => {
           </div>
 
           {/* Action Floaters */}
-          <div className="flex items-center space-x-1.5">
+          <div className="flex items-center space-x-1.5 self-start sm:self-auto mt-2 sm:mt-0">
             <motion.button
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.92 }}

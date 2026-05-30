@@ -18,6 +18,7 @@ const CATEGORY_KEYWORDS = {
   Education:    ['education', 'learning', 'study', 'teach', 'tutor', 'quiz', 'flashcard', 'course', 'homework', 'student'],
   Automation:   ['automation', 'automate', 'workflow automation', 'zapier', 'make', 'no-code', 'script', 'trigger'],
   Design:       ['design', 'ui', 'ux', 'figma', 'logo', 'banner', 'canva', 'mockup', 'prototype', 'icon'],
+  'Logo Maker': ['logo', 'logo maker', 'brand identity', 'logo design', 'logomaster', 'looka', 'brandmark', 'logoai', 'hatchful'],
   Finance:      ['finance', 'money', 'invest', 'accounting', 'budget', 'tax', 'financial', 'stock', 'crypto'],
   Legal:        ['legal', 'law', 'contract', 'document', 'compliance', 'terms', 'nda', 'agreement'],
   HR:           ['hr', 'hiring', 'recruit', 'resume', 'job', 'interview', 'employee', 'onboarding', 'talent'],
