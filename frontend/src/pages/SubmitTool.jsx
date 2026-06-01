@@ -8,6 +8,7 @@ import {
   AlignLeft, Type, DollarSign, CheckCircle2, ChevronLeft
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { Link } from 'react-router-dom';
 
 const CATEGORIES = [
@@ -284,6 +285,8 @@ const SubmitTool = () => {
           </form>
         </motion.div>
       </main>
+      
+      <Footer />
     </div>
   );
 };

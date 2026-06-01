@@ -30,7 +30,7 @@ const SharedFolder = () => {
       try {
         setLoading(true);
         setError(null);
-        const { data } = await axios.get(`http://localhost:5000/api/collections/shared/${id}`);
+        const { data } = await axios.get(`/api/collections/shared/${id}`);
         setCollection(data);
       } catch (err) {
         console.error(err);

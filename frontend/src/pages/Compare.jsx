@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { Search, X, Check, Minus, Info, Star, ExternalLink, Zap, Users, MousePointer2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -263,6 +264,8 @@ const Compare = () => {
           )}
         </AnimatePresence>
       </main>
+      
+      <Footer />
     </div>
   );
 };

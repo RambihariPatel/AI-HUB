@@ -118,7 +118,7 @@ const ToolCard = ({ tool }) => {
     }
 
     try {
-      const { data } = await axios.post('http://localhost:5000/api/users/subscriptions', 
+      const { data } = await axios.post('/api/users/subscriptions', 
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -147,14 +147,14 @@ const ToolCard = ({ tool }) => {
     }
 
     try {
-      const { data } = await axios.post('http://localhost:5000/api/users/favorites', 
+      const { data } = await axios.post('/api/users/favorites', 
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       
       const isFav = data.favorites.some(id => id?.toString() === tool._id);
       
-      const { data: cols } = await axios.get('http://localhost:5000/api/collections', {
+      const { data: cols } = await axios.get('/api/collections', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       
@@ -218,7 +218,7 @@ const ToolCard = ({ tool }) => {
             <div className="relative shrink-0">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 p-3 shadow-2xl flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-indigo-500/30 transition-all duration-500">
                 <img 
-                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${hostname}&name=${encodeURIComponent(tool.name)}`}
+                  src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${hostname}&name=${encodeURIComponent(tool.name)}`}
                   alt={tool.name} 
                   className="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-500"
                 />

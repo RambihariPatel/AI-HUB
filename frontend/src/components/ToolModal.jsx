@@ -16,13 +16,13 @@ const ToolModal = ({ tool, isOpen, onClose }) => {
     if (isOpen && tool) {
       // Record history
       if (user) {
-        axios.post('http://localhost:5000/api/users/history', { toolId: tool._id }, {
+        axios.post('/api/users/history', { toolId: tool._id }, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
       }
       
       // Fetch reviews
-      axios.get(`http://localhost:5000/api/reviews/${tool._id}`)
+      axios.get(`/api/reviews/${tool._id}`)
         .then(res => setReviews(res.data))
         .catch(err => console.error(err));
     }
@@ -53,7 +53,7 @@ const ToolModal = ({ tool, isOpen, onClose }) => {
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 rounded-2xl bg-slate-800 p-2 border border-white/5 flex items-center justify-center">
                   <img 
-                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                    src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
                     alt={tool.name} 
                     className="max-w-full max-h-full object-contain" 
                   />

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, X, Send, Sparkles, RotateCcw, ExternalLink, ChevronDown, Star, Zap } from 'lucide-react';
 import axios from 'axios';
 
-const API = 'http://localhost:5000/api';
+const API = '/api';
 
 // ─── Intent Detection ──────────────────────────────────────────────────────────
 const CATEGORY_KEYWORDS = {
@@ -160,7 +160,7 @@ const ToolResultCard = ({ tool, index, onToolClick }) => {
   const logoSrc = (() => {
     try {
       const domain = new URL(tool.link).hostname;
-      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/utils/proxy-logo?domain=${domain}&name=${encodeURIComponent(tool.name)}`;
+      return `${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${domain}&name=${encodeURIComponent(tool.name)}`;
     } catch {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`;
     }

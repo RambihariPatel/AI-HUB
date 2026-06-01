@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import ToolCard from '../components/ToolCard';
 import { motion } from 'framer-motion';
@@ -173,6 +174,8 @@ const CategoryPage = () => {
           </div>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 };
