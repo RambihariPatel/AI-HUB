@@ -15,39 +15,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (user && user.token) {
-      Promise.all([
-        axios.get('http://localhost:5000/api/users/favorites', {
-          headers: { Authorization: `Bearer ${user.token}` }
-        }),
-        axios.get('http://localhost:5000/api/collections', {
-          headers: { Authorization: `Bearer ${user.token}` }
-        }),
-        axios.get('http://localhost:5000/api/users/subscriptions', {
-          headers: { Authorization: `Bearer ${user.token}` }
-        })
-      ]).then(([favRes, colRes, subRes]) => {
-        const favIds = favRes.data.map(t => t._id || t);
-        const colIds = colRes.data.flatMap(c => c.tools.map(t => t._id || t));
-        const allSavedIds = Array.from(new Set([...favIds, ...colIds]));
-        localStorage.setItem('favoritesList', JSON.stringify(allSavedIds));
-        window.dispatchEvent(new Event('favoritesUpdated'));
-
-        const subIds = subRes.data.map(t => t._id || t);
-        localStorage.setItem('alertSubscriptionsList', JSON.stringify(subIds));
-        window.dispatchEvent(new Event('subscriptionsUpdated'));
-      }).catch(err => console.error('Error fetching favorites, collections & subscriptions:', err));
-    } else {
-      localStorage.removeItem('favoritesList');
-      localStorage.removeItem('alertSubscriptionsList');
-      window.dispatchEvent(new Event('favoritesUpdated'));
-      window.dispatchEvent(new Event('subscriptionsUpdated'));
-    }
-  }, [user]);
-
   const login = async (email, password) => {
-    const { data } = await axios.post('http://localhost:5000/api/auth/login', {
+    const { data } = await axios.post('/api/auth/login', {
       email,
       password,
     });
@@ -57,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
-    const { data } = await axios.post('http://localhost:5000/api/auth/register', {
+    const { data } = await axios.post('/api/auth/register', {
       name,
       email,
       password,
