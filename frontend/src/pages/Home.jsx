@@ -9,7 +9,7 @@ import {
   Sparkles, ArrowRight, TrendingUp, Search, X, ChevronRight,
   PenTool, Code, Image as ImageIcon, Video, Music, Database,
   Zap, BarChart3, GraduationCap, Bot, Palette, DollarSign,
-  Scale, Users, ShieldCheck
+  Scale, Users, ShieldCheck, Crown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,7 +37,7 @@ const Home = () => {
   const categories = [
     'Writing', 'Coding', 'Image', 'Video', 'Audio', 
     'Data', 'Productivity', 'Marketing', 'Education', 'Automation',
-    'Design', 'Finance', 'Legal', 'HR', 'Cybersecurity'
+    'Design', 'Logo Maker', 'Finance', 'Legal', 'HR', 'Cybersecurity'
   ];
 
   const premiumCategories = [
@@ -52,6 +52,7 @@ const Home = () => {
     { name: 'Education', desc: 'Smart AI tutors, interactive research, & homework help', icon: GraduationCap, color: 'from-indigo-500 to-purple-600', shadow: 'shadow-indigo-500/10' },
     { name: 'Automation', desc: 'Workflow integration, automated triggers & chat bots', icon: Bot, color: 'from-purple-500 to-fuchsia-600', shadow: 'shadow-purple-500/10' },
     { name: 'Design', desc: 'AI asset creation, smart palettes, & UI/UX design tools', icon: Palette, color: 'from-pink-500 to-purple-600', shadow: 'shadow-pink-500/10' },
+    { name: 'Logo Maker', desc: 'AI-powered logo design, brand identity & icon generators', icon: Crown, color: 'from-amber-400 to-yellow-600', shadow: 'shadow-amber-500/10' },
     { name: 'Finance', desc: 'Smart bookkeeping, stock analytics, & financial intelligence', icon: DollarSign, color: 'from-emerald-500 to-green-600', shadow: 'shadow-emerald-500/10' },
     { name: 'Legal', desc: 'Contracts analysis, law research, & automated compliance', icon: Scale, color: 'from-blue-500 to-cyan-600', shadow: 'shadow-blue-500/10' },
     { name: 'HR', desc: 'Applicant tracking, resume screeners, & talent onboarding', icon: Users, color: 'from-teal-500 to-emerald-600', shadow: 'shadow-teal-500/10' },

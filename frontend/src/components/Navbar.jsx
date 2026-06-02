@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Search, Menu, X, User, LogOut, LayoutDashboard, BrainCircuit } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, BrainCircuit, Package2 } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -26,6 +26,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-6">
             <Link to="/" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</Link>
             <Link to="/category/All" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Categories</Link>
+            <Link to="/toolkits" className="text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"><Package2 className="w-3.5 h-3.5" />Toolkits</Link>
             <Link to="/compare" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Compare</Link>
             <Link to="/submit-tool" className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-indigo-400 hover:opacity-80 transition-opacity">Submit Tool</Link>
             
@@ -78,17 +79,19 @@ const Navbar = () => {
       {isMenuOpen && (
         <div className="md:hidden bg-slate-950 border-b border-white/5 px-4 pt-2 pb-6 space-y-4">
           <div className="flex flex-col space-y-4 pt-4">
-            <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-slate-300">Home</Link>
-            <Link to="/compare" onClick={() => setIsMenuOpen(false)} className="text-slate-300">Compare</Link>
+            <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-medium">Home</Link>
+            <Link to="/category/All" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-medium">Categories</Link>
+            <Link to="/toolkits" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-medium flex items-center gap-2"><Package2 className="w-4 h-4" />Toolkits</Link>
+            <Link to="/compare" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-medium">Compare</Link>
             <Link to="/submit-tool" onClick={() => setIsMenuOpen(false)} className="text-pink-400 font-bold">Submit Tool</Link>
             {user ? (
               <>
-                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-slate-300">Dashboard</Link>
-                <button onClick={() => { logout(); setIsMenuOpen(false); }} className="text-red-400 text-left">Logout</button>
+                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-medium">Dashboard</Link>
+                <button onClick={() => { logout(); setIsMenuOpen(false); }} className="text-red-400 text-left font-medium">Logout</button>
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-slate-300">Login</Link>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="text-slate-300 font-medium">Login</Link>
                 <Link to="/signup" onClick={() => setIsMenuOpen(false)} className="btn-primary text-center">Sign Up</Link>
               </>
             )}
