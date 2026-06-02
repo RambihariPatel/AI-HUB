@@ -252,6 +252,7 @@ const ToolCard = ({ tool }) => {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.92 }}
               onClick={handleToggleSubscription}
+              onTouchStart={(e) => e.stopPropagation()}
               title={isSubscribed ? "Mute alerts" : "Get price & update alerts"}
               className={`p-2 rounded-xl border transition-all duration-300 ${
                 isSubscribed 
@@ -265,6 +266,7 @@ const ToolCard = ({ tool }) => {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.92 }}
               onClick={handleToggleFavorite}
+              onTouchStart={(e) => e.stopPropagation()}
               title={isFavorited ? "Remove from favorites" : "Add to favorites"}
               className={`p-2 rounded-xl border transition-all duration-300 ${
                 isFavorited 
@@ -278,6 +280,7 @@ const ToolCard = ({ tool }) => {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.92 }}
               onClick={handleOpenCollections}
+              onTouchStart={(e) => e.stopPropagation()}
               title="Save to Folder"
               className="p-2 rounded-xl border transition-all duration-300 bg-slate-950/40 text-slate-500 border-white/5 hover:text-white hover:border-slate-700"
             >
@@ -287,6 +290,7 @@ const ToolCard = ({ tool }) => {
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.92 }}
               onClick={handleToggleCompare}
+              onTouchStart={(e) => e.stopPropagation()}
               title={isCompared ? "Remove from comparison" : "Add to comparison"}
               className={`p-2 rounded-xl border transition-all duration-300 ${
                 isCompared 
