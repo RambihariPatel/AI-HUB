@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import SaveToCollectionModal from './SaveToCollectionModal';
 import { motion } from 'framer-motion';
+import { getLogoUrl } from '../apiConfig.js';
 
 const ToolCard = ({ tool }) => {
   const { user } = useAuth();
@@ -118,7 +119,7 @@ const ToolCard = ({ tool }) => {
     }
 
     try {
-      const { data } = await axios.post('/api/users/subscriptions', 
+      const { data } = await axios.post('http://localhost:5000/api/users/subscriptions', 
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -147,14 +148,14 @@ const ToolCard = ({ tool }) => {
     }
 
     try {
-      const { data } = await axios.post('/api/users/favorites', 
+      const { data } = await axios.post('http://localhost:5000/api/users/favorites', 
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       
       const isFav = data.favorites.some(id => id?.toString() === tool._id);
       
-      const { data: cols } = await axios.get('/api/collections', {
+      const { data: cols } = await axios.get('http://localhost:5000/api/collections', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       
@@ -204,19 +205,12 @@ const ToolCard = ({ tool }) => {
       transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       className="group relative bg-slate-900/35 backdrop-blur-xl border border-white/5 rounded-[2rem] overflow-hidden flex flex-col h-full premium-glow transition-all duration-300 hover:border-indigo-500/35 hover:shadow-[0_30px_60px_rgba(99,102,241,0.15)]"
     >
-      {/* Stretched Link for card navigation - sits below all interactive elements */}
-      <Link 
-        to={`/tool/${tool._id}`} 
-        className="absolute inset-0 z-10" 
-        aria-label={`View details for ${tool.name}`}
-      />
-
       {/* Decorative Aura */}
       <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 blur-[50px] -z-10 group-hover:scale-125 transition-transform duration-500" />
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-600/5 blur-3xl -z-10" />
 
-      {/* Card Content Wrapper - pointer-events-none so the stretched link works */}
-      <div className="p-6 flex flex-col flex-1 pointer-events-none">
+      {/* Card Content Wrapper */}
+      <Link to={`/tool/${tool._id}`} className="p-6 flex flex-col flex-1 cursor-pointer">
         
         {/* Top Header Row */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-5 gap-3">
@@ -225,7 +219,7 @@ const ToolCard = ({ tool }) => {
             <div className="relative shrink-0">
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 p-3 shadow-2xl flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-indigo-500/30 transition-all duration-500">
                 <img 
-                  src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${hostname}&name=${encodeURIComponent(tool.name)}`}
+                  src={getLogoUrl(tool)}
                   alt={tool.name} 
                   className="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-500"
                 />
@@ -253,8 +247,8 @@ const ToolCard = ({ tool }) => {
             </div>
           </div>
 
-          {/* Action Buttons - pointer-events-auto so they capture touch/click above the stretched link */}
-          <div className="flex items-center space-x-1.5 self-start sm:self-auto mt-2 sm:mt-0 pointer-events-auto relative z-20">
+          {/* Action Floaters */}
+          <div className="flex items-center space-x-1.5 self-start sm:self-auto mt-2 sm:mt-0">
             <motion.button
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.92 }}
@@ -393,10 +387,10 @@ const ToolCard = ({ tool }) => {
             </div>
           </div>
         )}
-      </div>
+      </Link>
 
-      {/* Footer Actions - relative z-20 so they remain clickable above the stretched link */}
-      <div className="relative z-20 border-t border-white/5 flex items-stretch h-12 mt-auto bg-slate-950/20 backdrop-blur-md">
+      {/* Footer Actions */}
+      <div className="border-t border-white/5 flex items-stretch h-12 mt-auto bg-slate-950/20 backdrop-blur-md">
         <Link 
           to={`/tool/${tool._id}`}
           className="flex-1 flex items-center justify-center space-x-2 text-xs font-bold text-slate-300 hover:bg-white/5 hover:text-white transition-all group/btn"

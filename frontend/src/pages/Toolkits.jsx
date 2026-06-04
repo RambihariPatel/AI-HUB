@@ -10,6 +10,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimatedMeshGradient from '../components/AnimatedMeshGradient';
 import ToolModal from '../components/ToolModal';
+import { getLogoUrl } from '../apiConfig.js';
 
 // ─── Color map → Tailwind classes ────────────────────────────────────────────
 const COLOR = {
@@ -75,14 +76,7 @@ const COLOR = {
   },
 };
 
-const getLogoSrc = (tool) => {
-  try {
-    const domain = new URL(tool.link).hostname;
-    return `${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${domain}&name=${encodeURIComponent(tool.name)}`;
-  } catch {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`;
-  }
-};
+// getLogoUrl is imported from apiConfig.js
 
 // ─── Toolkit Detail Drawer ───────────────────────────────────────────────────
 const ToolkitDrawer = ({ toolkit, onClose, onToolClick }) => {
@@ -161,7 +155,7 @@ const ToolkitDrawer = ({ toolkit, onClose, onToolClick }) => {
                     className={`flex items-center gap-3 p-3 rounded-2xl border transition-all group text-left ${c.toolBg}`}
                   >
                     <div className="w-11 h-11 rounded-xl bg-slate-800 border border-white/5 flex-shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
-                      <img src={getLogoSrc(tool)} alt={tool.name} className="w-full h-full object-contain p-1.5" />
+                      <img src={getLogoUrl(tool)} alt={tool.name} className="w-full h-full object-contain p-1.5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
@@ -255,7 +249,7 @@ const ToolkitCard = ({ toolkit, index, onClick }) => {
                 style={{ zIndex: previewTools.length - i }}
               >
                 <img
-                  src={getLogoSrc(tool)}
+                  src={getLogoUrl(tool)}
                   alt={tool.name}
                   className="w-full h-full object-contain p-1"
                 />
@@ -325,8 +319,26 @@ const Toolkits = () => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    axios.get('/api/toolkits')
-      .then(res => setToolkits(res.data))
+    const cached = sessionStorage.getItem('toolkits_cache');
+    if (cached) {
+      setToolkits(JSON.parse(cached));
+      setLoading(false);
+      
+      // Silent background refresh
+      axios.get('http://localhost:5000/api/toolkits')
+        .then(res => {
+          setToolkits(res.data);
+          sessionStorage.setItem('toolkits_cache', JSON.stringify(res.data));
+        })
+        .catch(console.error);
+      return;
+    }
+
+    axios.get('http://localhost:5000/api/toolkits')
+      .then(res => {
+        setToolkits(res.data);
+        sessionStorage.setItem('toolkits_cache', JSON.stringify(res.data));
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);

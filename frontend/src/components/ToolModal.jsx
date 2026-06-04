@@ -4,35 +4,54 @@ import {
   X, ExternalLink, Star, CheckCircle2, AlertCircle, 
   Cpu, CreditCard, Users, Zap, ThumbsUp, ThumbsDown, MessageSquare 
 } from 'lucide-react';
-import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { getLogoUrl } from '../apiConfig.js';
+import axios from 'axios';
 
-const ToolModal = ({ tool, isOpen, onClose }) => {
+const ToolModal = ({ tool: propTool, isOpen, onClose }) => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [tool, setTool] = useState(propTool);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen && tool) {
+    if (isOpen && propTool) {
+      setTool(propTool);
+      
+      // Fetch full tool details if descriptionLong is missing
+      if (!propTool.descriptionLong) {
+        setLoading(true);
+        axios.get(`http://localhost:5000/api/tools/${propTool._id}`)
+          .then(res => {
+            setTool(res.data);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Error fetching full tool details:', err);
+            setLoading(false);
+          });
+      }
+
       // Record history
       if (user) {
-        axios.post('/api/users/history', { toolId: tool._id }, {
+        axios.post('http://localhost:5000/api/users/history', { toolId: propTool._id }, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
       }
       
       // Fetch reviews
-      axios.get(`/api/reviews/${tool._id}`)
+      axios.get(`http://localhost:5000/api/reviews/${propTool._id}`)
         .then(res => setReviews(res.data))
         .catch(err => console.error(err));
     }
-  }, [isOpen, tool, user]);
+  }, [isOpen, propTool, user]);
 
-  if (!tool) return null;
+  if (!propTool) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && tool && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
           <motion.div
             initial={{ opacity: 0 }}
@@ -53,7 +72,7 @@ const ToolModal = ({ tool, isOpen, onClose }) => {
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 rounded-2xl bg-slate-800 p-2 border border-white/5 flex items-center justify-center">
                   <img 
-                    src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                    src={getLogoUrl(tool)}
                     alt={tool.name} 
                     className="max-w-full max-h-full object-contain" 
                   />
@@ -102,9 +121,17 @@ const ToolModal = ({ tool, isOpen, onClose }) => {
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <section>
                     <h3 className="text-lg font-bold text-white mb-4">Description</h3>
-                    <p className="text-slate-300 leading-relaxed max-w-3xl">
-                      {tool.descriptionLong}
-                    </p>
+                    {loading ? (
+                      <div className="space-y-3 animate-pulse max-w-3xl">
+                        <div className="h-4 bg-slate-800 rounded w-full"></div>
+                        <div className="h-4 bg-slate-800 rounded w-11/12"></div>
+                        <div className="h-4 bg-slate-800 rounded w-4/5"></div>
+                      </div>
+                    ) : (
+                      <p className="text-slate-300 leading-relaxed max-w-3xl">
+                        {tool.descriptionLong}
+                      </p>
+                    )}
                   </section>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

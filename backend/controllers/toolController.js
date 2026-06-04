@@ -41,7 +41,9 @@ export const getTools = async (req, res) => {
   }
 
   try {
-    const tools = await Tool.find(query).sort({ rating: -1 });
+    const tools = await Tool.find(query)
+      .select('-descriptionLong -plans')
+      .sort({ rating: -1 });
     res.json(tools);
   } catch (error) {
     res.status(500).json({ message: error.message });

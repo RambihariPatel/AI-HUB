@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import ToolCard from '../components/ToolCard';
 import AnimatedMeshGradient from '../components/AnimatedMeshGradient';
 import SkeletonCard from '../components/SkeletonCard';
+import { getLogoUrl } from '../apiConfig.js';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -66,10 +67,10 @@ const Dashboard = () => {
     const handleFavoritesUpdate = async () => {
       try {
         const [favRes, colRes] = await Promise.all([
-          axios.get('/api/users/favorites', {
+          axios.get('http://localhost:5000/api/users/favorites', {
             headers: { Authorization: `Bearer ${user.token}` }
           }),
-          axios.get('/api/collections', {
+          axios.get('http://localhost:5000/api/collections', {
             headers: { Authorization: `Bearer ${user.token}` }
           })
         ]);
@@ -87,7 +88,7 @@ const Dashboard = () => {
   const fetchPendingTools = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get('/api/tools/pending', {
+      const { data } = await axios.get('http://localhost:5000/api/tools/pending', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setPendingTools(data);
@@ -104,25 +105,25 @@ const Dashboard = () => {
       setLoading(true);
       
       // Fetch My Submissions
-      const subRes = await axios.get('/api/tools/my-submissions', {
+      const subRes = await axios.get('http://localhost:5000/api/tools/my-submissions', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setMySubmissions(subRes.data);
 
       // Fetch Favorites
-      const favRes = await axios.get('/api/users/favorites', {
+      const favRes = await axios.get('http://localhost:5000/api/users/favorites', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setFavorites(favRes.data);
 
       // Fetch History
-      const histRes = await axios.get('/api/users/history', {
+      const histRes = await axios.get('http://localhost:5000/api/users/history', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setHistory(histRes.data);
 
       // Fetch Collections
-      const colRes = await axios.get('/api/collections', {
+      const colRes = await axios.get('http://localhost:5000/api/collections', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setCollections(colRes.data);
@@ -140,7 +141,7 @@ const Dashboard = () => {
 
     try {
       setSubmittingFolder(true);
-      await axios.post('/api/collections', 
+      await axios.post('http://localhost:5000/api/collections', 
         { name: newFolderName.trim() },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -148,7 +149,7 @@ const Dashboard = () => {
       setNewFolderName('');
       
       // Refresh collections
-      const colRes = await axios.get('/api/collections', {
+      const colRes = await axios.get('http://localhost:5000/api/collections', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setCollections(colRes.data);
@@ -163,7 +164,7 @@ const Dashboard = () => {
     if (!window.confirm(`Are you sure you want to delete the folder "${folderName}"?`)) return;
 
     try {
-      await axios.delete(`/api/collections/${id}`, {
+      await axios.delete(`http://localhost:5000/api/collections/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       toast.success(`Folder "${folderName}" deleted.`);
@@ -173,7 +174,7 @@ const Dashboard = () => {
       }
 
       // Refresh collections
-      const colRes = await axios.get('/api/collections', {
+      const colRes = await axios.get('http://localhost:5000/api/collections', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setCollections(colRes.data);
@@ -191,7 +192,7 @@ const Dashboard = () => {
  
   const handleTogglePublic = async (folderId) => {
     try {
-      const { data } = await axios.put(`/api/collections/${folderId}/toggle-public`, {}, {
+      const { data } = await axios.put(`http://localhost:5000/api/collections/${folderId}/toggle-public`, {}, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setCollections(prev => prev.map(col => col._id === folderId ? { ...col, isPublic: data.isPublic } : col));
@@ -214,7 +215,7 @@ const Dashboard = () => {
 
   const handleApprove = async (id) => {
     try {
-      await axios.put(`/api/tools/${id}/approve`, {}, {
+      await axios.put(`http://localhost:5000/api/tools/${id}/approve`, {}, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       toast.success('Tool approved and set live! 🚀');
@@ -235,7 +236,7 @@ const Dashboard = () => {
   const handleReject = async (id) => {
     if (!window.confirm('Are you sure you want to reject and delete this tool?')) return;
     try {
-      await axios.delete(`/api/tools/${id}`, {
+      await axios.delete(`http://localhost:5000/api/tools/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       toast.success('Tool submission rejected and deleted.');
@@ -367,7 +368,7 @@ const Dashboard = () => {
                       <div className="flex items-center gap-4 w-full sm:w-auto">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 p-2.5 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                           <img 
-                            src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                            src={getLogoUrl(tool)}
                             alt={tool.name} 
                             className="max-w-full max-h-full object-contain filter drop-shadow-md" 
                           />
@@ -454,7 +455,7 @@ const Dashboard = () => {
                       <div className="flex items-center space-x-3.5">
                         <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 p-2 shadow-inner flex items-center justify-center overflow-hidden">
                           <img 
-                            src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${getHostname(inspectTool.link)}&name=${encodeURIComponent(inspectTool.name)}`}
+                            src={getLogoUrl(inspectTool)}
                             alt={inspectTool.name} 
                             className="max-w-full max-h-full object-contain"
                           />
@@ -785,7 +786,7 @@ const Dashboard = () => {
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-3 shadow-xl flex items-center justify-center overflow-hidden shrink-0">
                           <img 
-                            src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                            src={getLogoUrl(tool)}
                             alt={tool.name} 
                             className="max-w-full max-h-full object-contain" 
                           />
@@ -1028,7 +1029,7 @@ const Dashboard = () => {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-slate-800 p-2 border border-white/5 flex items-center justify-center overflow-hidden shrink-0">
                             <img 
-                              src={`${import.meta.env.VITE_API_URL || ''}/api/utils/proxy-logo?domain=${getHostname(tool.link)}&name=${encodeURIComponent(tool.name)}`}
+                              src={getLogoUrl(tool)}
                               alt={tool.name} 
                               className="max-w-full max-h-full object-contain" 
                             />

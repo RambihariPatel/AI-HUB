@@ -402,4 +402,25 @@ html.light .html-light-bg {
   background-color: #f8fafc !important;
 }
 
+/* Custom Theme Toggle Button Styles */
+html.light .theme-toggle-btn {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #334155 !important;
+}
+
+html.light .theme-toggle-btn:hover {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+html.light .theme-toggle-btn svg {
+  color: #4f46e5 !important;
+}
+
+html.dark .theme-toggle-btn svg.text-amber-400 {
+  color: #f59e0b !important;
+}
+
+
 

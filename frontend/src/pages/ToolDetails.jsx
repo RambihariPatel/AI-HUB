@@ -8,15 +8,30 @@ import {
   Star, ExternalLink, CheckCircle2, AlertCircle, 
   Cpu, CreditCard, Users, Zap, ThumbsUp, ThumbsDown, 
   MessageSquare, ChevronLeft, Globe, ShieldCheck, 
-  Share2, ArrowRight, TrendingUp, User
+  Share2, ArrowRight, TrendingUp, User, X, GitCompare, Heart, Bell, BookmarkPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import SaveToCollectionModal from '../components/SaveToCollectionModal';
+import { getLogoUrl } from '../apiConfig.js';
 
 const ToolDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
+
+  const getHostname = (urlStr) => {
+    try {
+      if (!urlStr) return '';
+      let formattedUrl = urlStr;
+      if (!/^https?:\/\//i.test(urlStr)) {
+        formattedUrl = `https://${urlStr}`;
+      }
+      return new URL(formattedUrl).hostname;
+    } catch (e) {
+      return '';
+    }
+  };
   const [tool, setTool] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
@@ -25,10 +40,245 @@ const ToolDetails = () => {
   const [userRating, setUserRating] = useState(5);
   const [userComment, setUserComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState(null);
+  const [isCompared, setIsCompared] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [liveViewers, setLiveViewers] = useState(3);
+
+  useEffect(() => {
+    if (!tool) return;
+    const getBaseViewers = (usersStr) => {
+      if (!usersStr) return 3;
+      if (usersStr.includes('M')) {
+        return Math.floor(Math.random() * 25 + 15);
+      }
+      if (usersStr.includes('k')) {
+        const val = parseInt(usersStr);
+        if (val > 500) return Math.floor(Math.random() * 8 + 6);
+        return Math.floor(Math.random() * 4 + 3);
+      }
+      return 3;
+    };
+    let current = getBaseViewers(tool.monthlyUsers);
+    setLiveViewers(current);
+
+    const interval = setInterval(() => {
+      setLiveViewers(prev => {
+        const delta = Math.random() > 0.5 ? 1 : -1;
+        const next = prev + delta;
+        return Math.max(2, Math.min(45, next));
+      });
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [tool]);
+
+  useEffect(() => {
+    if (!tool) return;
+    try {
+      const stored = localStorage.getItem('alertSubscriptionsList');
+      const list = stored ? JSON.parse(stored) : [];
+      setIsSubscribed(list.includes(tool._id));
+    } catch {}
+
+    const handleSubscriptionsUpdate = () => {
+      try {
+        const stored = localStorage.getItem('alertSubscriptionsList');
+        const list = stored ? JSON.parse(stored) : [];
+        setIsSubscribed(list.includes(tool._id));
+      } catch {}
+    };
+
+    window.addEventListener('subscriptionsUpdated', handleSubscriptionsUpdate);
+    return () => window.removeEventListener('subscriptionsUpdated', handleSubscriptionsUpdate);
+  }, [tool]);
+
+  const handleToggleSubscription = async () => {
+    if (!user) {
+      toast.error('Please log in to subscribe to alerts! 🔔');
+      return;
+    }
+
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/users/subscriptions', 
+        { toolId: tool._id },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      const isSub = data.alertSubscriptions.some(id => id.toString() === tool._id);
+      setIsSubscribed(isSub);
+      localStorage.setItem('alertSubscriptionsList', JSON.stringify(data.alertSubscriptions));
+      window.dispatchEvent(new Event('subscriptionsUpdated'));
+      
+      if (isSub) {
+        toast.success(`Subscribed to alerts for ${tool.name}! 🔔`);
+      } else {
+        toast.success(`Unsubscribed from alerts for ${tool.name}.`);
+      }
+    } catch (error) {
+      toast.error('Failed to update subscription.');
+    }
+  };
+  const [screenshot, setScreenshot] = useState('');
+  const [screenshotPreview, setScreenshotPreview] = useState('');
+  const [lightboxImage, setLightboxImage] = useState(null);
+
+  const handleScreenshotChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      toast.error('Image size must be less than 2MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setScreenshot(reader.result);
+      setScreenshotPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveScreenshot = () => {
+    setScreenshot('');
+    setScreenshotPreview('');
+  };
+
+  const handleToggleHelpful = async (reviewId) => {
+    if (!user) {
+      toast.error('Please log in to vote on reviews! 👍');
+      return;
+    }
+
+    try {
+      const { data } = await axios.post(`http://localhost:5000/api/reviews/${reviewId}/helpful`, {}, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      
+      setReviews(prev => prev.map(r => r._id === reviewId ? { ...r, helpfulVotes: data.helpfulVotes, badges: data.badges } : r));
+      toast.success(data.helpfulVotes.some(uid => uid.toString() === user._id) ? 'Marked as helpful! 👍' : 'Removed vote.');
+    } catch (error) {
+      toast.error('Failed to register vote.');
+    }
+  };
+
+  useEffect(() => {
+    if (!tool) return;
+    try {
+      const stored = localStorage.getItem('compareTools');
+      const list = stored ? JSON.parse(stored) : [];
+      setIsCompared(list.some(t => t._id === tool._id));
+    } catch {}
+
+    try {
+      const stored = localStorage.getItem('favoritesList');
+      const list = stored ? JSON.parse(stored) : [];
+      setIsFavorited(list.includes(tool._id));
+    } catch {}
+
+    const handleCompareUpdate = () => {
+      try {
+        const stored = localStorage.getItem('compareTools');
+        const list = stored ? JSON.parse(stored) : [];
+        setIsCompared(list.some(t => t._id === tool._id));
+      } catch {}
+    };
+
+    const handleFavoritesUpdate = () => {
+      try {
+        const stored = localStorage.getItem('favoritesList');
+        const list = stored ? JSON.parse(stored) : [];
+        setIsFavorited(list.includes(tool._id));
+      } catch {}
+    };
+
+    window.addEventListener('compareUpdated', handleCompareUpdate);
+    window.addEventListener('favoritesUpdated', handleFavoritesUpdate);
+    return () => {
+      window.removeEventListener('compareUpdated', handleCompareUpdate);
+      window.removeEventListener('favoritesUpdated', handleFavoritesUpdate);
+    };
+  }, [tool]);
+
+  const handleToggleCompare = () => {
+    let currentCompare = [];
+    try {
+      const stored = localStorage.getItem('compareTools');
+      currentCompare = stored ? JSON.parse(stored) : [];
+    } catch {
+      currentCompare = [];
+    }
+
+    const isAlreadyAdded = currentCompare.some(t => t._id === tool._id);
+    if (isAlreadyAdded) {
+      const updated = currentCompare.filter(t => t._id !== tool._id);
+      localStorage.setItem('compareTools', JSON.stringify(updated));
+      window.dispatchEvent(new Event('compareUpdated'));
+      setIsCompared(false);
+      toast.success(`${tool.name} removed from comparison.`);
+    } else {
+      if (currentCompare.length >= 2) {
+        toast.error('You can compare up to 2 tools at a time.');
+        return;
+      }
+      const updated = [...currentCompare, tool];
+      localStorage.setItem('compareTools', JSON.stringify(updated));
+      window.dispatchEvent(new Event('compareUpdated'));
+      setIsCompared(true);
+      toast.success(`${tool.name} added to comparison! 🏆`);
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      toast.error('Please log in to save tools! ❤️');
+      return;
+    }
+    
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/users/favorites', 
+        { toolId: tool._id },
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      
+      const isFav = data.favorites.some(id => id?.toString() === tool._id);
+      setIsFavorited(isFav);
+      
+      const { data: cols } = await axios.get('http://localhost:5000/api/collections', {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      
+      const favIds = data.favorites.map(id => id?.toString()).filter(Boolean);
+      const colIds = cols.flatMap(c => c.tools.map(t => t._id || t));
+      const allSavedIds = Array.from(new Set([...favIds, ...colIds]));
+      
+      localStorage.setItem('favoritesList', JSON.stringify(allSavedIds));
+      window.dispatchEvent(new Event('favoritesUpdated'));
+      
+      if (isFav) {
+        toast.success('Added to Favorites! ❤️');
+      } else {
+        toast.success('Removed from Favorites.');
+      }
+    } catch (error) {
+      toast.error('Failed to update favorites.');
+    }
+  };
+
+  const handleOpenCollections = () => {
+    if (!user) {
+      toast.error('Please log in to save to folders! 📂');
+      return;
+    }
+    setIsSaveModalOpen(true);
+  };
 
   const fetchReviews = async () => {
     try {
-      const { data } = await axios.get(`/api/reviews/${id}`);
+      const { data } = await axios.get(`http://localhost:5000/api/reviews/${id}`);
       setReviews(data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -39,18 +289,18 @@ const ToolDetails = () => {
     const fetchToolDetails = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`/api/tools/${id}`);
+        const { data } = await axios.get(`http://localhost:5000/api/tools/${id}`);
         setTool(data);
         
         // Record history if user is logged in
         if (user) {
-          axios.post('/api/users/history', { toolId: id }, {
+          axios.post('http://localhost:5000/api/users/history', { toolId: id }, {
             headers: { Authorization: `Bearer ${user.token}` }
           });
         }
 
         // Fetch related tools
-        const relatedRes = await axios.get(`/api/tools`, {
+        const relatedRes = await axios.get(`http://localhost:5000/api/tools`, {
           params: { category: data.category }
         });
         setRelatedTools(relatedRes.data.filter(t => t._id !== id).slice(0, 4));
@@ -82,16 +332,19 @@ const ToolDetails = () => {
 
     try {
       setIsSubmitting(true);
-      await axios.post('/api/reviews', {
+      await axios.post('http://localhost:5000/api/reviews', {
         toolId: id,
         rating: userRating,
-        comment: userComment
+        comment: userComment,
+        screenshot: screenshot
       }, {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       
       toast.success('Review posted successfully! 🚀');
       setUserComment('');
+      setScreenshot('');
+      setScreenshotPreview('');
       setShowReviewForm(false);
       fetchReviews(); // Refresh reviews
     } catch (error) {
@@ -173,6 +426,46 @@ const ToolDetails = () => {
           </Link>
           <div className="flex items-center space-x-3 w-full md:w-auto">
             <button 
+              onClick={handleToggleSubscription}
+              title={isSubscribed ? "Mute alerts" : "Get price & update alerts"}
+              className={`p-3 rounded-xl border transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 ${
+                isSubscribed 
+                  ? 'bg-amber-600/20 text-amber-500 border-amber-500/30' 
+                  : 'bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              <Bell className={`w-5 h-5 ${isSubscribed ? 'fill-amber-500 text-amber-500' : ''}`} />
+            </button>
+            <button 
+              onClick={handleToggleFavorite}
+              title={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              className={`p-3 rounded-xl border transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 ${
+                isFavorited 
+                  ? 'bg-rose-600/20 text-rose-500 border-rose-500/30 animate-pulse' 
+                  : 'bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              <Heart className={`w-5 h-5 ${isFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
+            </button>
+            <button 
+              onClick={handleOpenCollections}
+              title="Save to Folder"
+              className="p-3 rounded-xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all shadow-lg hover:shadow-indigo-500/10 active:scale-95 flex items-center justify-center"
+            >
+              <BookmarkPlus className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleToggleCompare}
+              title={isCompared ? "Remove from comparison" : "Add to comparison"}
+              className={`p-3 rounded-xl border transition-all shadow-lg active:scale-95 flex items-center justify-center space-x-2 ${
+                isCompared 
+                  ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30 animate-pulse' 
+                  : 'bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              <GitCompare className="w-5 h-5" />
+            </button>
+            <button 
               onClick={handleShare}
               className="p-3 rounded-xl bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all shadow-lg hover:shadow-indigo-500/10 active:scale-95"
             >
@@ -199,7 +492,7 @@ const ToolDetails = () => {
               className="w-32 h-32 md:w-40 md:h-40 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-6 md:p-8 shadow-2xl flex items-center justify-center overflow-hidden shrink-0 group hover:border-indigo-500/50 transition-colors"
             >
               <img 
-                src={`/api/utils/proxy-logo?domain=${new URL(tool.link).hostname}&name=${encodeURIComponent(tool.name)}`}
+                src={getLogoUrl(tool)}
                 alt={tool.name} 
                 className="max-w-full max-h-full object-contain filter drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" 
               />
@@ -233,6 +526,17 @@ const ToolDetails = () => {
                   <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
                   <span className="text-sm md:text-base text-white">{tool.monthlyUsers || '10k+'}</span>
                 </div>
+              </div>
+
+              {/* Glowing Live Concurrent Viewers Tracker */}
+              <div className="mt-5 flex items-center space-x-2.5 bg-slate-900/40 px-4 py-2.5 rounded-2xl border border-white/5 w-fit mx-auto md:mx-0 shadow-[0_0_15px_rgba(239,68,68,0.03)]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider leading-none">
+                  🔥 <span className="text-red-400 font-black">{liveViewers}</span> people exploring this platform right now!
+                </p>
               </div>
             </div>
           </div>
@@ -445,6 +749,100 @@ const ToolDetails = () => {
             )}
           </div>
 
+          {/* Rating Breakdown Dashboard */}
+          {reviews.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+              {/* Left side: Avg Rating Card */}
+              <div className="lg:col-span-4 bg-slate-900/40 rounded-[2rem] border border-white/5 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <p className="text-sm font-black text-slate-500 uppercase tracking-widest mb-2">Average User Rating</p>
+                <div className="flex items-baseline space-x-2 mb-4">
+                  <span className="text-6xl font-black text-white">{tool.rating.toFixed(1)}</span>
+                  <span className="text-xl text-slate-500 font-bold">/ 5.0</span>
+                </div>
+                <div className="flex items-center space-x-1 mb-4">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const ratingVal = Math.round(tool.rating);
+                    return (
+                      <Star
+                        key={star}
+                        className={`w-6 h-6 ${
+                          star <= ratingVal
+                            ? 'text-yellow-500 fill-yellow-500 filter drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]'
+                            : 'text-slate-700'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-slate-400 font-bold">
+                  Based on <span className="text-white font-black">{reviews.length} reviews</span>
+                </p>
+              </div>
+
+              {/* Right side: Detailed Breakdown Progress Bars */}
+              <div className="lg:col-span-8 bg-slate-900/40 rounded-[2rem] border border-white/5 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Rating Distribution</p>
+                  {selectedRatingFilter && (
+                    <button
+                      onClick={() => setSelectedRatingFilter(null)}
+                      className="text-xs font-black text-indigo-400 hover:text-indigo-300 transition-colors flex items-center space-x-1"
+                    >
+                      <span>Clear Filter ({selectedRatingFilter} Star)</span>
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const count = reviews.filter((r) => r.rating === stars).length;
+                    const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                    const isSelected = selectedRatingFilter === stars;
+                    return (
+                      <button
+                        key={stars}
+                        onClick={() => {
+                          if (count > 0) {
+                            setSelectedRatingFilter(isSelected ? null : stars);
+                          }
+                        }}
+                        disabled={count === 0}
+                        className={`w-full flex items-center space-x-4 p-2 rounded-xl text-left transition-all ${
+                          count === 0
+                            ? 'opacity-30 cursor-not-allowed'
+                            : isSelected
+                            ? 'bg-indigo-500/10 border border-indigo-500/20'
+                            : 'hover:bg-white/5 border border-transparent'
+                        }`}
+                      >
+                        <span className="w-12 text-sm font-black text-white whitespace-nowrap flex items-center space-x-1">
+                          <span>{stars}</span>
+                          <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                        </span>
+                        <div className="flex-1 h-3 bg-slate-950 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.8, ease: 'easeOut' }}
+                            className={`h-full rounded-full ${
+                              isSelected
+                                ? 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                                : 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                            }`}
+                          />
+                        </div>
+                        <span className="w-12 text-right text-xs font-bold text-slate-400">
+                          {count} ({pct.toFixed(0)}%)
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
           <AnimatePresence>
             {showReviewForm && (
               <motion.div
@@ -460,24 +858,46 @@ const ToolDetails = () => {
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
                     <div className="md:col-span-4 space-y-6">
                       <div>
-                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-4">Rate your experience</p>
+                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Rate your experience</p>
                         <div className="flex items-center space-x-2">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
                               type="button"
                               onClick={() => setUserRating(star)}
-                              className="focus:outline-none transition-transform active:scale-90"
+                              onMouseEnter={() => setHoverRating(star)}
+                              onMouseLeave={() => setHoverRating(0)}
+                              className="focus:outline-none transition-transform active:scale-75 hover:scale-110"
                             >
                               <Star 
                                 className={`w-8 h-8 ${
-                                  star <= userRating 
-                                    ? 'text-yellow-500 fill-yellow-500 filter drop-shadow-[0_0_8px_rgba(234,179,8,0.4)]' 
+                                  star <= (hoverRating || userRating) 
+                                    ? 'text-yellow-500 fill-yellow-500 filter drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]' 
                                     : 'text-slate-700 hover:text-slate-600'
-                                } transition-colors`}
+                                } transition-colors duration-150`}
                               />
                             </button>
                           ))}
+                        </div>
+                        <div className="mt-3 min-h-[24px]">
+                          <motion.p
+                            key={hoverRating || userRating}
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-sm font-black text-indigo-300"
+                          >
+                            {(() => {
+                              const activeRating = hoverRating || userRating;
+                              switch (activeRating) {
+                                case 1: return "Bakwaas hai! 😡 (Terrible)";
+                                case 2: return "Kaam chalau hai. 😐 (Average)";
+                                case 3: return "Achha hai, normal use ke liye. 🙂 (Good)";
+                                case 4: return "Dhamakedar! Mazaa aa gaya. 🚀 (Awesome)";
+                                case 5: return "Ekdum Gazab! Solid tool. 💎🔥 (Outstanding)";
+                                default: return "";
+                              }
+                            })()}
+                          </motion.p>
                         </div>
                       </div>
                       <div className="p-6 rounded-2xl bg-slate-950/50 border border-white/5">
@@ -497,8 +917,40 @@ const ToolDetails = () => {
                         value={userComment}
                         onChange={(e) => setUserComment(e.target.value)}
                         placeholder="What do you think about this AI tool? Mention features, pricing, or ease of use..."
-                        className="flex-1 min-h-[160px] bg-slate-950/50 border border-white/10 rounded-3xl p-6 text-white placeholder:text-slate-700 outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all text-lg font-medium resize-none mb-6"
+                        className="flex-1 min-h-[160px] bg-slate-950/50 border border-white/10 rounded-3xl p-6 text-white placeholder:text-slate-700 outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all text-lg font-medium resize-none mb-4"
                       />
+
+                      {/* Screenshot drag-and-drop / upload input */}
+                      <div className="mb-6">
+                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Upload Screenshot of your work (Optional)</p>
+                        
+                        {!screenshotPreview ? (
+                          <label className="flex flex-col items-center justify-center h-28 w-full bg-slate-950/50 border-2 border-dashed border-white/10 hover:border-indigo-500/50 hover:bg-slate-950 rounded-2xl cursor-pointer group transition-all">
+                            <div className="flex flex-col items-center justify-center space-y-1.5 text-center px-4">
+                              <span className="text-indigo-400 font-bold text-sm group-hover:text-indigo-300">Click to upload screenshot</span>
+                              <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">PNG or JPG, max 2MB</span>
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/png, image/jpeg, image/jpg"
+                              onChange={handleScreenshotChange}
+                              className="hidden"
+                            />
+                          </label>
+                        ) : (
+                          <div className="relative w-40 h-28 rounded-xl overflow-hidden border border-white/10 group">
+                            <img src={screenshotPreview} alt="Screenshot preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={handleRemoveScreenshot}
+                              className="absolute top-1.5 right-1.5 p-1 bg-red-600 hover:bg-red-500 text-white rounded-full transition-all"
+                              title="Remove image"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex justify-end">
                         <button
                           disabled={isSubmitting}
@@ -532,37 +984,101 @@ const ToolDetails = () => {
                 <h3 className="text-xl font-bold text-slate-400">No user reviews yet.</h3>
                 <p className="text-slate-600">Be the first to share your thoughts on {tool.name}.</p>
               </div>
-            ) : (
-              reviews.map((review, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="glass-card-premium rounded-[2rem] p-8 border border-white/5 hover:-translate-y-1 transition-all group"
+            ) : selectedRatingFilter && reviews.filter(r => r.rating === selectedRatingFilter).length === 0 ? (
+              <div className="col-span-full text-center py-16 bg-slate-900/30 rounded-[3rem] border border-dashed border-white/5">
+                <MessageSquare className="w-12 h-12 text-slate-800 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-slate-400">No {selectedRatingFilter}-star reviews found.</h3>
+                <button 
+                  onClick={() => setSelectedRatingFilter(null)}
+                  className="mt-2 text-sm text-indigo-400 font-bold hover:text-indigo-300 transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-black text-white border border-white/5 shadow-xl uppercase ring-4 ring-indigo-500/10">
-                        {review.userName?.charAt(0) || 'U'}
+                  Clear filter to see all reviews
+                </button>
+              </div>
+            ) : (
+              reviews
+                .filter(review => !selectedRatingFilter || review.rating === selectedRatingFilter)
+                .map((review, i) => (
+                  <motion.div 
+                    key={review._id || i}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="glass-card-premium rounded-[2.25rem] p-8 border border-white/5 hover:-translate-y-1 hover:border-indigo-500/20 transition-all group flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Review Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-black text-white border border-white/5 shadow-xl uppercase ring-4 ring-indigo-500/10">
+                            {review.userName?.charAt(0) || 'U'}
+                          </div>
+                          <div>
+                            <div className="flex items-center flex-wrap gap-1">
+                              <p className="text-white font-black group-hover:text-indigo-400 transition-colors leading-none">{review.userName}</p>
+                            </div>
+                            <p className="text-[10px] text-slate-500 font-bold mt-1">{new Date(review.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-1 flex-shrink-0">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-slate-700'}`} />
+                          ))}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-white font-black group-hover:text-indigo-400 transition-colors">{review.userName}</p>
-                        <p className="text-[10px] text-slate-500 font-bold">{new Date(review.createdAt).toLocaleDateString()}</p>
-                      </div>
+
+                      {/* Dynamic User Badges */}
+                      {review.badges && review.badges.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {review.badges.map(badge => {
+                            let badgeStyle = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+                            if (badge === 'Verified Creator') badgeStyle = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                            if (badge === 'Power User') badgeStyle = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                            return (
+                              <span key={badge} className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${badgeStyle}`}>
+                                {badge}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Comment text */}
+                      <p className="text-slate-400 font-medium leading-relaxed italic relative pl-4 border-l border-white/5 text-sm">
+                        <span className="text-indigo-500/30 text-4xl absolute -top-4 -left-1 opacity-50 font-serif">“</span>
+                        {review.comment}
+                      </p>
+
+                      {/* Screenshot display */}
+                      {review.screenshot && (
+                        <div 
+                          onClick={() => setLightboxImage(review.screenshot)}
+                          className="mt-5 relative rounded-2xl overflow-hidden border border-white/5 max-w-full cursor-zoom-in group/img shadow-md hover:border-indigo-500/30 transition-all"
+                        >
+                          <img src={review.screenshot} alt="User created work screenshot" className="w-full h-auto object-cover max-h-40 group-hover/img:scale-105 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-black uppercase tracking-wider text-white backdrop-blur-[1px]">
+                            <span>Click to Zoom</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-yellow-500 fill-yellow-500' : 'text-slate-700'}`} />
-                      ))}
+
+                    {/* Review Footer with Helpful upvotes toggle */}
+                    <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
+                      <button
+                        onClick={() => handleToggleHelpful(review._id)}
+                        className={`flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl border transition-all active:scale-95 cursor-pointer ${
+                          user && review.helpfulVotes?.some(uid => uid.toString() === user._id)
+                            ? 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30'
+                            : 'bg-slate-950/40 text-slate-500 border-white/5 hover:text-white hover:border-slate-700'
+                        }`}
+                      >
+                        <ThumbsUp className="w-3.5 h-3.5" />
+                        <span>Helpful ({review.helpfulVotes?.length || 0})</span>
+                      </button>
                     </div>
-                  </div>
-                  <p className="text-slate-400 font-medium leading-relaxed italic line-clamp-4 relative">
-                    <span className="text-indigo-500/50 text-4xl absolute -top-4 -left-2 opacity-50 font-serif">“</span>
-                    {review.comment}
-                  </p>
-                </motion.div>
-              ))
+                  </motion.div>
+                ))
             )}
           </div>
         </section>
@@ -591,8 +1107,42 @@ const ToolDetails = () => {
           </section>
         )}
       </main>
-      
       <Footer />
+      <SaveToCollectionModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        tool={tool}
+      />
+
+      {/* Screenshot Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setLightboxImage(null)}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md cursor-zoom-out"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative max-w-4xl max-h-[85vh] z-10 bg-slate-900 border border-white/10 rounded-2xl overflow-hidden p-2 shadow-2xl flex items-center justify-center"
+            >
+              <button 
+                type="button"
+                onClick={() => setLightboxImage(null)}
+                className="absolute top-4 right-4 p-2 rounded-xl bg-slate-950/60 hover:bg-slate-950 text-slate-300 hover:text-white transition-all border border-white/5 z-20 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img src={lightboxImage} alt="Full screen review work screenshot" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-xl" />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

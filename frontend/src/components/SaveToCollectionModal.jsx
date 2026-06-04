@@ -23,13 +23,13 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
     try {
       setLoading(true);
       // Fetch collections
-      const { data: cols } = await axios.get('/api/collections', {
+      const { data: cols } = await axios.get('http://localhost:5000/api/collections', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       setCollections(cols);
 
       // Fetch general favorites list directly from backend
-      const { data: favs } = await axios.get('/api/users/favorites', {
+      const { data: favs } = await axios.get('http://localhost:5000/api/users/favorites', {
         headers: { Authorization: `Bearer ${user.token}` }
       });
       
@@ -52,7 +52,7 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
 
   const handleToggleGeneralFavorite = async () => {
     try {
-      const { data } = await axios.post('/api/users/favorites', 
+      const { data } = await axios.post('http://localhost:5000/api/users/favorites', 
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
@@ -82,13 +82,13 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
     try {
       if (isAlreadyInFolder) {
         // Remove from folder
-        await axios.delete(`/api/collections/${collection._id}/tools/${tool._id}`, {
+        await axios.delete(`http://localhost:5000/api/collections/${collection._id}/tools/${tool._id}`, {
           headers: { Authorization: `Bearer ${user.token}` }
         });
         toast.success(`Removed from folder "${collection.name}".`);
       } else {
         // Add to folder
-        await axios.post(`/api/collections/${collection._id}/tools`, 
+        await axios.post(`http://localhost:5000/api/collections/${collection._id}/tools`, 
           { toolId: tool._id },
           { headers: { Authorization: `Bearer ${user.token}` } }
         );
@@ -109,13 +109,13 @@ const SaveToCollectionModal = ({ isOpen, onClose, tool }) => {
     try {
       setSubmittingFolder(true);
       // 1. Create collection
-      const { data: newCol } = await axios.post('/api/collections', 
+      const { data: newCol } = await axios.post('http://localhost:5000/api/collections', 
         { name: newFolderName.trim() },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
 
       // 2. Add current tool to it
-      await axios.post(`/api/collections/${newCol._id}/tools`, 
+      await axios.post(`http://localhost:5000/api/collections/${newCol._id}/tools`, 
         { toolId: tool._id },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );

@@ -1,14 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import axios from 'axios';
 import App from './App.jsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext.jsx';
+import axios from 'axios';
 
-// Configure Axios base URL dynamically using environment variables
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+import { API_BASE_URL } from './apiConfig.js';
 
+// Global Axios Request Interceptor for Dynamic Production API URL Routing
+axios.interceptors.request.use(
+  (config) => {
+    if (config.url && config.url.startsWith('http://localhost:5000')) {
+      config.url = config.url.replace('http://localhost:5000', API_BASE_URL);
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
