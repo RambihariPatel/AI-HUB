@@ -267,7 +267,12 @@ const Home = () => {
                                 <img 
                                   src={getLogoUrl(tool)}
                                   alt={tool.name} 
-                                  className="w-full h-full object-contain" 
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`;
+                                  }}
+                                  loading="lazy"
                                 />
                               </div>
                               <div className="text-left flex-1">

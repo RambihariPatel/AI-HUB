@@ -494,7 +494,12 @@ const ToolDetails = () => {
               <img 
                 src={getLogoUrl(tool)}
                 alt={tool.name} 
-                className="max-w-full max-h-full object-contain filter drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" 
+                className="max-w-full max-h-full object-contain filter drop-shadow-2xl group-hover:scale-110 transition-transform duration-500"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=256`;
+                }}
+                loading="lazy"
               />
             </motion.div>
             <div className="text-center md:text-left pt-2 md:pt-4">

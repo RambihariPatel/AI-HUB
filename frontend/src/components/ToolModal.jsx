@@ -74,7 +74,12 @@ const ToolModal = ({ tool: propTool, isOpen, onClose }) => {
                   <img 
                     src={getLogoUrl(tool)}
                     alt={tool.name} 
-                    className="max-w-full max-h-full object-contain" 
+                    className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`;
+                    }}
+                    loading="lazy"
                   />
                 </div>
                 <div>

@@ -197,7 +197,7 @@ const ToolCard = ({ tool }) => {
     }
   };
 
-  const hostname = new URL(tool.link).hostname;
+  const hostname = (() => { try { return new URL(tool.link).hostname; } catch { return ''; } })();
 
   return (
     <motion.div 
@@ -222,6 +222,11 @@ const ToolCard = ({ tool }) => {
                   src={getLogoUrl(tool)}
                   alt={tool.name} 
                   className="max-w-full max-h-full object-contain filter drop-shadow-md group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`;
+                  }}
+                  loading="lazy"
                 />
               </div>
               {tool.popularity === 'High' && (

@@ -155,7 +155,7 @@ const ToolkitDrawer = ({ toolkit, onClose, onToolClick }) => {
                     className={`flex items-center gap-3 p-3 rounded-2xl border transition-all group text-left ${c.toolBg}`}
                   >
                     <div className="w-11 h-11 rounded-xl bg-slate-800 border border-white/5 flex-shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
-                      <img src={getLogoUrl(tool)} alt={tool.name} className="w-full h-full object-contain p-1.5" />
+                      <img src={getLogoUrl(tool)} alt={tool.name} className="w-full h-full object-contain p-1.5" onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=128`; }} loading="lazy" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
@@ -252,6 +252,8 @@ const ToolkitCard = ({ toolkit, index, onClick }) => {
                   src={getLogoUrl(tool)}
                   alt={tool.name}
                   className="w-full h-full object-contain p-1"
+                  onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(tool.name)}&background=6366f1&color=fff&bold=true&size=64`; }}
+                  loading="lazy"
                 />
               </div>
             ))}
